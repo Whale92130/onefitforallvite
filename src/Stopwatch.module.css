@@ -1,0 +1,16 @@
+/* src/components/Stopwatch.module.css */
+.container {
+    width: 100%;
+    height: 50px; /* Explicit unit */
+    display: flex; /* To use justify-content and align-items */
+    justify-content: center; /* To center the time text horizontally */
+    align-items: center;    /* To center the time text vertically within the 50px height */
+    background-color: transparent;
+  }
+  
+  .time {
+    font-size: 24px; /* Explicit unit */
+    font-weight: bold;
+    color: #333;
+    /* The .timePadding class was empty in the original, so it's omitted unless needed */
+  }
