@@ -70,12 +70,14 @@ export default function App() {
 
   // Function to determine the active icon based on the current path
   const getActiveIcon = (): IconName => {
-    if (location.pathname === '/NewWorkout') {
+    const path = location.pathname.toLowerCase();
+  
+    if (path.startsWith('/newworkout')) {
       return 'newWorkout';
-    } else if (location.pathname === '/profile') {
+    } else if (path.startsWith('/profile')) {
       return 'profile';
     } else {
-      return 'home'; // Default to home for '/' and other paths
+      return 'home';
     }
   };
 
@@ -122,7 +124,9 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: Colors.background || '#f0f0f0',
   },
   contentArea: {
-    flex: 1,
+    flex: 1, // takes all remaining space
+    display: 'flex',
+    flexDirection: 'column',
   },
   homePageLayout: {
     display: 'flex',
@@ -131,12 +135,12 @@ const styles: { [key: string]: CSSProperties } = {
     padding: 5,
   },
   topSection: {
-    // minHeight: 220,
     marginBottom: 10,
   },
   bottomSection: {
     display: 'flex',
     flexDirection: 'row',
+    height: '100%',
     gap: 10,
   },
   bottomItem: {

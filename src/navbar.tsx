@@ -57,6 +57,7 @@ const styles: { [key: string]: CSSProperties } = {
     paddingRight: 10,
     width: '100%', // Ensure navbar spans width
     boxSizing: 'border-box', // Include padding/border in width
+    flexShrink: 0,
   },
   // Style for the button container
   iconContainer: {
@@ -71,6 +72,8 @@ const styles: { [key: string]: CSSProperties } = {
     padding: 0,
     margin: 0,
     cursor: 'pointer',
+    outline: 'none',
+    WebkitTapHighlightColor: 'transparent',
   },
   // Base style for all icons
   iconImage: {
@@ -91,7 +94,7 @@ const styles: { [key: string]: CSSProperties } = {
   // Style for active state (using opacity instead of tintColor)
   activeIconStyle: {
     opacity: 1,
-    filter: 'sepia(1) hue-rotate(190deg) saturate(300%)',
+    filter: 'invert(45%) sepia(30%) saturate(2000%) hue-rotate(180deg) brightness(105%) contrast(90%)',
   },
   // Style for inactive state (using opacity instead of tintColor)
   inactiveIconStyle: {

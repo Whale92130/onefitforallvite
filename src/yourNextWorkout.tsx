@@ -14,10 +14,6 @@ const nextWorkout = {
 // Define styles as JS objects. Use CSSProperties for type safety.
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    // flex: 1, // 'flex: 1' behaves differently in web. Usually needs a parent with display:flex and defined height/flex basis.
-               // You might need `height: '100%'` or adjust based on parent container.
-               // Let's set a min-height for demonstration, adjust as needed.
-    //minHeight: '200px', // Example: Give it some minimum height
     height: '100%',
     display: 'flex', // Needed for flex properties below
     flexDirection: 'column',

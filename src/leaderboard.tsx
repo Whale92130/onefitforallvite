@@ -74,9 +74,6 @@ export default function Leaderboard({ leaderboardData = defaultLeaderboardData }
 // --- Styles Definition (Inline JavaScript Object) ---
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    // height: '100%', // Setting 100% height can be tricky. It depends on the parent having a defined height.
-                    // Consider setting a specific height or min-height, or letting content define height.
-   // minHeight: '300px', // Example minimum height
    height: '100%',
    display: 'flex', // Needed for flex properties below
    flexDirection: 'column',
