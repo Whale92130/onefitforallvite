@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
+import  { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
 
 // --- Asset Imports ---
 // Use standard ES module imports for assets in Vite.
@@ -10,6 +10,8 @@ import fireImage from '/home/user/onefitforallvite/src/assets/images/fire.png';
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors properties with actual color values.
 import { Colors } from './colors'; // Adjust path as needed
+import useFirebase from './useFirebase';
+import { getAuth } from 'firebase/auth';
 
 // --- Styles Definition ---
 const styles: { [key: string]: CSSProperties } = {
@@ -63,6 +65,8 @@ const styles: { [key: string]: CSSProperties } = {
 
 // --- TopBar Component ---
 const TopBar = () => {
+
+  const user = getAuth().currentUser;
   const streakCount = 10; // Replace with actual user streak count logic
 
   return (
@@ -76,6 +80,7 @@ const TopBar = () => {
           alt="App Logo" // Add descriptive alt text
           style={styles.logo}
         />
+        <h1>Hello {user?.displayName??user?.email??"User"}</h1>
 
         {/* Streak Counter Container */}
         <div style={styles.streakContainer}>

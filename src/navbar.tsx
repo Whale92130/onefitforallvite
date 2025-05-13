@@ -3,9 +3,9 @@ import React, { CSSProperties } from 'react';
 // --- Asset Imports ---
 // Use standard ES module imports for assets in Vite.
 // Adjust these paths based on your actual project structure.
-import homeIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/home_icon.png';
-import newWorkoutIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/start_icon.png';
-import profileIconSrc from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg'; // Assuming this is the correct profile icon
+// import homeIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/home_icon.png';
+// import newWorkoutIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/start_icon.png';
+// import profileIconSrc from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg'; // Assuming this is the correct profile icon
 
 // --- Colors Import ---
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
@@ -32,15 +32,15 @@ export type NavbarProps = {
 const ICONS: IconConfig[] = [
   {
     name: 'home',
-    source: homeIconSrc,
+    source: "/navbar_icons/home_icon.png",
   },
   {
     name: 'newWorkout',
-    source: newWorkoutIconSrc,
+    source: "/navbar_icons/start_icon.png",
   },
   {
     name: 'profile',
-    source: profileIconSrc,
+    source: "/icons/logo.jpeg",
   },
 ];
 

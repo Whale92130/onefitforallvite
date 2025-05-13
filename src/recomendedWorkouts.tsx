@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
+import { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
 
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors.primary and Colors.textPrimary with actual color values

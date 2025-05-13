@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './blameLin.module.css'; // Import CSS Module
-// import crateImage from '../../assets/images/crate.png'; // Adjust path if needed
+import styles from './NavigateToCrateButton.module.css'; // Import CSS Module
+import crateImage from '../assets/images/crate.png'; // Adjust path if needed
 
 // Define placeholder colors or import from a shared config/CSS variables
 const placeholderColors = {
@@ -13,7 +13,7 @@ const NavigateToCrateButton: React.FC = () => {
   const navigate = useNavigate();
 
   // Define the target route for the web app
-  const targetRoute = '/crates';
+  const targetRoute = '/crates'; // Or '/open-crate', match your router setup
 
   return (
     // Container div to center the button on the page
@@ -25,7 +25,7 @@ const NavigateToCrateButton: React.FC = () => {
         style={{ backgroundColor: placeholderColors.primary }} // Apply background color
       >
         <img
-          src={"/crate.png"}
+          src={crateImage}
           alt="Crate icon" // Add alt text for accessibility
           className={styles.image}
         />
@@ -39,5 +39,7 @@ const NavigateToCrateButton: React.FC = () => {
     </div>
   );
 }
+
+
 
 export default NavigateToCrateButton;

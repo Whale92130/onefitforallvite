@@ -66,7 +66,7 @@ const AddExercise: FC<Props> = ({ onDelete }) => {
         </button>
 
       <div className={styles.formBox}>
-        <label htmlFor={`exerciseName-${React.useId()}`}>Exercise Name:</label>
+        <label htmlFor={`exerciseName-${React.useId()}`}>Exercise Name: </label>
         <input
           type="text"
           id={`exerciseName-${React.useId()}`}

@@ -1,0 +1,56 @@
+/* Centers the button within its parent */
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Make container take full viewport height to center vertically */
+    /* width: 100%; */
+    padding: 20px; /* Add some padding */
+    box-sizing: border-box;
+  }
+  
+  /* Styles for the button itself */
+  .button {
+    width: 150px;
+    height: 150px;
+    border-radius: 20px;
+    /* background-color is set via inline style for demo, or use CSS variable */
+    /* background-color: #e0e0e0; */ /* Example color */
+    display: flex; /* Use flexbox to arrange image and text */
+    flex-direction: column; /* Stack image and text vertically */
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Center items vertically */
+    border: none; /* Remove default button border */
+    cursor: pointer; /* Indicate it's clickable */
+    padding: 10px; /* Add some internal padding */
+    box-sizing: border-box;
+    transition: transform 0.1s ease-in-out, box-shadow 0.2s ease; /* Add subtle transition */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  }
+  
+  .button:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Slightly larger shadow on hover */
+  }
+  
+  .button:active {
+      transform: scale(0.98); /* Slightly shrink on click */
+       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  
+  /* Styles for the image inside the button */
+  .image {
+    width: 80px; /* Adjusted size slightly */
+    height: 80px;
+    margin-bottom: 8px; /* Increased spacing a bit */
+    object-fit: contain; /* Ensure image scales correctly */
+  }
+  
+  /* Styles for the text inside the button */
+  .text {
+    font-size: 16px;
+    font-weight: bold;
+    /* color is set via inline style for demo, or use CSS variable */
+    /* color: #333; */ /* Example color */
+    text-align: center; /* Ensure text is centered if it wraps */
+  }

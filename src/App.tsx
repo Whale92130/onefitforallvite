@@ -1,5 +1,5 @@
-import React, { CSSProperties } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, BrowserRouter } from 'react-router-dom';
+import  { CSSProperties, useEffect, useState } from 'react';
+import { Routes, Route, useLocation, useNavigate} from 'react-router-dom';
 
 // --- Import Converted Page/Layout Components ---
 import YourNextWorkout from './yourNextWorkout';
@@ -8,32 +8,34 @@ import Leaderboard from './leaderboard';
 import TopBar from './topbar';
 import Navbar, { IconName } from './navbar';
 import ProfileScreen from './profile';
-import OpenCrateScreen from './openCrate';
-import OpenShopScreen from './openShop'; 
+import OpenShop from './openShop';
+import OpenCrateScreen from './OpenCrateScreen';
 import NewWorkout from './NewWorkout';
 import Stopwatch from './stopwatch';
-
+import SignInPage from './signInPage';
 // Placeholder for NewWorkout page component
 const NewWorkoutPage = () => <div style={{padding: 20, textAlign: 'center'}}><h2>We're staying strong!</h2>
     {/* Render the NewWorkout component here */}
     <Stopwatch/>
     <NewWorkout />  </div>;
-const CratesPage = () => <div style={{padding: 20, textAlign: 'center'}}><h2>Crates Page</h2><p>Crate opening content.</p></div>;
+const CratesPage = () => <div style={{padding: 20, textAlign: 'center'}}>
+  
+  <OpenCrateScreen/> 
+</div>;
 const ShopPage = () => <div style={{padding: 20, textAlign: 'center'}}><h2>Shop Page</h2><p>Shop content.</p></div>;
 
 // --- Colors Import (adjust path as needed) ---
 import { Colors } from './colors';
+import { FirebaseProvider } from './FirebaseContext';
+import { User, getAuth } from 'firebase/auth';
+import NavigateToCrateButton from './openCrate';
 
-// --- Mock Data ---
-const leaderboardData = [
-  { name: 'Alice Johnson', workouts: 15 },
-  { name: 'Bob Williams', workouts: 20 },
-  { name: 'Charlie Brown', workouts: 10 },
-];
+
+
 
 // Component to render for the Home page
 const HomeContent = () => (
-  <>
+  <FirebaseProvider>
     <TopBar/>
     <div style={styles.homePageLayout}>
       <div style={styles.topSection}>
@@ -44,29 +46,63 @@ const HomeContent = () => (
           <YourNextWorkout />
         </div>
         <div style={styles.bottomItem}>
-          <Leaderboard leaderboardData={leaderboardData} />
+          <Leaderboard/>
         </div>
       </div>
     </div>
-  </>
+  </FirebaseProvider>
 );
 
 // Component to render for the Profile page
-const ProfileContent = () => (
+const ProfileContent = () => {
+  const navigate = useNavigate();
+  return (
   <div style={styles.profilePageLayout}>
     <ProfileScreen />
     <div style={styles.horizontalButtons}>
-      <OpenCrateScreen />
-      <OpenShopScreen />
+      <NavigateToCrateButton />
+      <OpenShop/>
     </div>
   </div>
-);
+)};
 
 
 // --- App Component (Manages routing) ---
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+const [user, setUser] = useState<User | null>(null);
+const [initializing, setInitializing] = useState(true);
+
+
+
+const onAuthStateChanged = (user: User | null) => {
+  console.log("onAuthStateChanged", user);
+  setUser(user);
+  navigate("/sign-in")
+  if (initializing) setInitializing(false);
+};
+
+useEffect(() => {
+  const subscriber = getAuth().onAuthStateChanged(onAuthStateChanged);
+  return subscriber;
+}, []);
+
+useEffect(() => {
+  if (initializing) return;
+  const segments = location.pathname.split("/");
+  const inAuthGroup = !segments.includes("sign-in");
+
+  console.log(inAuthGroup)
+
+  if (user && !inAuthGroup) {
+    navigate("/");
+  } else if (!user && inAuthGroup) {
+    navigate("/sign-in");
+  }
+}, [user,location.pathname]);
+
 
   // Function to determine the active icon based on the current path
   const getActiveIcon = (): IconName => {
@@ -101,15 +137,18 @@ export default function App() {
           <Route path="/crates" element={<CratesPage />} />
           <Route path="/shop" element={<ShopPage />} />
 
+          <Route path="/sign-in" element={<SignInPage />} />
+
           {/* Add a catch-all or redirect for unknown paths if needed */}
           {/* <Route path="*" element={<Navigate to="/" />} /> */}
         </Routes>
         
       </div>
-      <Navbar
+
+      {user!==null&&<Navbar
         activeIcon={getActiveIcon()}
         onIconPress={handleIconPress}
-      />
+      />}
     </div>
   );
 }
@@ -120,7 +159,7 @@ const styles: { [key: string]: CSSProperties } = {
   appContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    height: '40%',
     backgroundColor: Colors.background || '#f0f0f0',
   },
   contentArea: {
@@ -140,7 +179,7 @@ const styles: { [key: string]: CSSProperties } = {
   bottomSection: {
     display: 'flex',
     flexDirection: 'row',
-    height: '100%',
+    height: '60%',
     gap: 10,
   },
   bottomItem: {
@@ -163,3 +202,5 @@ const styles: { [key: string]: CSSProperties } = {
     alignItems: 'center',
   },
 };
+
+//npm install react-router-dom

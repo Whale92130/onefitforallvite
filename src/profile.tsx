@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, ChangeEvent, CSSProperties } from 'react';
+import  { useState, useRef, ChangeEvent, CSSProperties, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // For web navigation
 
 // --- Asset Imports (adjust paths as needed) ---
@@ -9,6 +9,8 @@ import settingsIconSrc from '/home/user/onefitforallvite/src/assets/images/setti
 
 // --- Colors Import (adjust path as needed) ---
 import { Colors } from './colors'; // Make sure this path is correct
+import { auth } from './firebase';
+import { getAuth, updateProfile } from 'firebase/auth';
 
 // --- Styles Definition ---
 const styles: { [key: string]: CSSProperties } = {
@@ -71,7 +73,7 @@ const styles: { [key: string]: CSSProperties } = {
   editIcon: {
     width: 18,
     height: 18,
-    // tintColor: 'white', // OMITTED - For SVGs use 'fill' or have a white version
+    filter: 'invert(100%) brightness(200%)',
   },
   usernameContainer: {
     alignItems: 'center',
@@ -144,12 +146,19 @@ const styles: { [key: string]: CSSProperties } = {
 
 
 export default function ProfileScreen() {
-  const [username, setUsername] = useState('Username');
+  const [username, setUsername] = useState("");  
   const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [tempUsername, setTempUsername] = useState(username);
+  const [tempUsername, setTempUsername] = useState("");
   const [profilePicUri, setProfilePicUri] = useState<string | null>(null);
   const navigate = useNavigate(); // For web navigation
   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for the hidden file input
+  useEffect(()=>{
+    if (tempUsername === "") {
+      setTempUsername(auth.currentUser?.displayName??auth.currentUser?.email??"User");
+      
+    }
+    setUsername(auth.currentUser?.displayName??auth.currentUser?.email??"User")
+  },[tempUsername])
 
   // No explicit permission request needed for web file input
   // The useEffect for ImagePicker permissions is removed.
@@ -174,13 +183,14 @@ export default function ProfileScreen() {
   };
 
   const handleEditUsername = () => {
-    setTempUsername(username);
     setIsEditingUsername(true);
   };
 
   const handleSaveUsername = () => {
-    setUsername(tempUsername);
+    updateProfile(getAuth().currentUser!,{ displayName: tempUsername } )
+    setUsername(tempUsername)
     setIsEditingUsername(false);
+    auth.currentUser?.reload();
     // TODO: Add logic to save the username persistently (e.g., API call)
     console.log('Username Saved (Web):', tempUsername);
     // window.alert(`Username changed to: ${tempUsername}`);

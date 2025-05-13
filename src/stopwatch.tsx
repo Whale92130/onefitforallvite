@@ -1,5 +1,5 @@
 // src/components/Stopwatch.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef } from 'react';
 import styles from './Stopwatch.module.css'; // We'll create this CSS module
 
 const Stopwatch = () => {

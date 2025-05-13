@@ -30,16 +30,21 @@ interface LeaderboardProps {
 }
 
 // Default data if none is provided
-const defaultLeaderboardData = [
+
+
+// --- Main Leaderboard Component ---
+export default function Leaderboard() {
+  const leaderboardData = [
     { name: 'Noah Sacks', workouts: 12 },
     { name: 'Alexander Sementchenko', workouts: 11 },
     { name: 'Peter Jones', workouts: 10 },
     { name: 'Alice Brown', workouts: 9 },
     { name: 'Bob White', workouts: 8 },
+    {name: "Jackson Szekeres", workouts: 14},
+    {name: "Tom Petty", workouts: 15},
+    {name: "Lin", workouts: -100}
 ];
-
-// --- Main Leaderboard Component ---
-export default function Leaderboard({ leaderboardData = defaultLeaderboardData }: LeaderboardProps) {
+  
   return (
     // Main container div
     <div style={styles.container}>
@@ -59,7 +64,7 @@ export default function Leaderboard({ leaderboardData = defaultLeaderboardData }
       <div style={styles.scrollableContent}>
         {/* Check if data is an array before mapping */}
         {Array.isArray(leaderboardData) && leaderboardData.length > 0 ? (
-          leaderboardData.map((item, index) => (
+          leaderboardData.sort((a,b)=>b.workouts - a.workouts).map((item, index) => (
             <LeaderboardItem key={index} name={item.name} workouts={item.workouts} rank={index + 1} />
           ))
         ) : (
@@ -81,6 +86,7 @@ const styles: { [key: string]: CSSProperties } = {
    borderRadius: 10,
    padding: 10,
    boxSizing: 'border-box',
+   maxHeight: "100%"
   },
   title: {
     fontSize: 18,
