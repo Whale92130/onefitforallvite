@@ -1,5 +1,5 @@
-import  { CSSProperties, useEffect, useState } from 'react';
-import { Routes, Route, useLocation, useNavigate} from 'react-router-dom';
+import React, { CSSProperties } from 'react';
+import { Routes, Route, Link, useLocation, useNavigate, BrowserRouter } from 'react-router-dom';
 
 // --- Import Converted Page/Layout Components ---
 import YourNextWorkout from './yourNextWorkout';
@@ -11,167 +11,67 @@ import ProfileScreen from './profile';
 import OpenShop from './openShop';
 import OpenCrateScreen from './OpenCrateScreen';
 import NewWorkout from './NewWorkout';
-import Stopwatch from './stopwatch';
-import SignInPage from './signInPage';
-// Placeholder for NewWorkout page component
-const NewWorkoutPage = () => <div style={{padding: 20, textAlign: 'center'}}><h2>We're staying strong!</h2>
-    {/* Render the NewWorkout component here */}
-    <Stopwatch/>
-    <NewWorkout />  </div>;
-const CratesPage = () => <div style={{padding: 20, textAlign: 'center'}}>
-  
-  <OpenCrateScreen/> 
-</div>;
-const ShopPage = () => <div style={{padding: 20, textAlign: 'center'}}><h2>Shop Page</h2><p>Shop content.</p></div>;
+import OpenCrateButton from './openCrate';
+import SettingsPage from './settings';
+import { useTheme } from './ThemeContext'; // Correct: Import useTheme
+import { ThemeProvider } from './ThemeContext'; // <<<--- ADD THIS: To provide the theme context
 
 // --- Colors Import (adjust path as needed) ---
-import { Colors } from './colors';
 import { FirebaseProvider } from './FirebaseContext';
-import { User, getAuth } from 'firebase/auth';
-import NavigateToCrateButton from './openCrate';
 
 
-
-
-// Component to render for the Home page
-const HomeContent = () => (
-  <FirebaseProvider>
-    <TopBar/>
-    <div style={styles.homePageLayout}>
-      <div style={styles.topSection}>
-        <RecommendedWorkouts />
-      </div>
-      <div style={styles.bottomSection}>
-        <div style={styles.bottomItem}>
-          <YourNextWorkout />
-        </div>
-        <div style={styles.bottomItem}>
-          <Leaderboard/>
-        </div>
-      </div>
-    </div>
-  </FirebaseProvider>
-);
-
-// Component to render for the Profile page
-const ProfileContent = () => {
-  const navigate = useNavigate();
+// Placeholder for NewWorkout page component
+const NewWorkoutPage = () => {
+  const { theme } = useTheme(); // Get theme for this page if needed
   return (
-  <div style={styles.profilePageLayout}>
-    <ProfileScreen />
-    <div style={styles.horizontalButtons}>
-      <NavigateToCrateButton />
-      <OpenShop/>
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+      <h2>Please don't tab out or your progess will be lost!</h2>
+      <NewWorkout />
     </div>
-  </div>
-)};
-
-
-// --- App Component (Manages routing) ---
-export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-const [user, setUser] = useState<User | null>(null);
-const [initializing, setInitializing] = useState(true);
-
-
-
-const onAuthStateChanged = (user: User | null) => {
-  console.log("onAuthStateChanged", user);
-  setUser(user);
-  navigate("/sign-in")
-  if (initializing) setInitializing(false);
-};
-
-useEffect(() => {
-  const subscriber = getAuth().onAuthStateChanged(onAuthStateChanged);
-  return subscriber;
-}, []);
-
-useEffect(() => {
-  if (initializing) return;
-  const segments = location.pathname.split("/");
-  const inAuthGroup = !segments.includes("sign-in");
-
-  console.log(inAuthGroup)
-
-  if (user && !inAuthGroup) {
-    navigate("/");
-  } else if (!user && inAuthGroup) {
-    navigate("/sign-in");
-  }
-}, [user,location.pathname]);
-
-
-  // Function to determine the active icon based on the current path
-  const getActiveIcon = (): IconName => {
-    const path = location.pathname.toLowerCase();
-  
-    if (path.startsWith('/newworkout')) {
-      return 'newWorkout';
-    } else if (path.startsWith('/profile')) {
-      return 'profile';
-    } else {
-      return 'home';
-    }
-  };
-
-  const handleIconPress = (iconName: IconName) => {
-    if (iconName === 'home') {
-      navigate('/');
-    } else {
-      navigate(`/${iconName}`);
-    }
-  };
-
+  );
+}
+const CratesPage = () => {
+  const { theme } = useTheme(); // Get theme for this page if needed
   return (
-    <div style={styles.appContainer}>
-      <div style={styles.contentArea}>
-        <Routes>
-          <Route path="/" element={<HomeContent />} />
-          <Route path="/NewWorkout" element={<NewWorkoutPage/>} />
-          <Route path="/profile" element={<ProfileContent />} />
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+      <OpenCrateScreen />
+    </div>
+  );
+}
 
-          {/* Routes for crates and shop pages if they are separate routes */}
-          <Route path="/crates" element={<CratesPage />} />
-          <Route path="/shop" element={<ShopPage />} />
-
-          <Route path="/sign-in" element={<SignInPage />} />
-
-          {/* Add a catch-all or redirect for unknown paths if needed */}
-          {/* <Route path="*" element={<Navigate to="/" />} /> */}
-        </Routes>
-        
-      </div>
-
-      {user!==null&&<Navbar
-        activeIcon={getActiveIcon()}
-        onIconPress={handleIconPress}
-      />}
+const ShopPage = () => {
+  const { theme } = useTheme(); // Get theme for this page if needed
+  return (
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+      <h2>Shop Page</h2>
+      <p>Coming soon!</p>
     </div>
   );
 }
 
 
-// --- Styles Definition (same as before) ---
-const styles: { [key: string]: CSSProperties } = {
+// --- Styles Definition: Make it a function that accepts theme ---
+const getStyles = (theme: any): { [key: string]: CSSProperties } => ({ // 'any' for theme for brevity, use your Theme interface ideally
   appContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '40%',
-    backgroundColor: Colors.background || '#f0f0f0',
+    height: '100vh', // Use vh for full viewport height
+    backgroundColor: theme.background, // Now theme is available
   },
   contentArea: {
-    flex: 1, // takes all remaining space
+    flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    overflowY: 'auto', // Allow content to scroll if it overflows
+    // paddingBottom: 60, // Navbar is outside this, so padding might not be needed here
   },
   homePageLayout: {
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
     padding: 5,
+    // backgroundColor: theme.background, // If HomeContent needs its own background
+    // color: theme.textPrimary,
   },
   topSection: {
     marginBottom: 10,
@@ -179,7 +79,8 @@ const styles: { [key: string]: CSSProperties } = {
   bottomSection: {
     display: 'flex',
     flexDirection: 'row',
-    height: '60%',
+    // height: '100%', // This can be tricky, let flex grow handle it
+    flexGrow: 1,
     gap: 10,
   },
   bottomItem: {
@@ -192,15 +93,113 @@ const styles: { [key: string]: CSSProperties } = {
     flexDirection: 'column',
     flex: 1,
     padding: 10,
+    // backgroundColor: theme.background,
+    // color: theme.textPrimary,
   },
   horizontalButtons: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 0,
+    gap: 0, // Consider adding some gap if needed: theme.spacing.small or similar
     marginTop: 0,
     alignItems: 'center',
   },
+});
+
+// --- Child Components that need styles and theme ---
+const HomeContent = () => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme); // Get styles with current theme
+  return (
+    <FirebaseProvider> {/* Consider if FirebaseProvider also needs theme */}
+      <TopBar /> {/* TopBar needs to use useTheme() internally if it's themed */}
+      <div style={styles.homePageLayout}>
+        <div style={styles.topSection}>
+          <RecommendedWorkouts />
+        </div>
+        <div style={styles.bottomSection}>
+          <div style={styles.bottomItem}>
+            <YourNextWorkout />
+          </div>
+          <div style={styles.bottomItem}>
+            <Leaderboard />
+          </div>
+        </div>
+      </div>
+    </FirebaseProvider>
+  );
 };
 
-//npm install react-router-dom
+const ProfileContent = () => {
+  const { theme } = useTheme();
+  const styles = getStyles(theme); // Get styles with current theme
+  const navigate = useNavigate(); // useNavigate should be inside component
+  return (
+    <div style={styles.profilePageLayout}>
+      <ProfileScreen />
+      <div style={styles.horizontalButtons}>
+        <OpenCrateButton />
+        <OpenShop />
+      </div>
+    </div>
+  );
+};
+
+
+// --- Main App Component Wrapper (for BrowserRouter and ThemeProvider) ---
+// It's common practice to have a root component that sets up providers.
+const AppWrapper = () => {
+  return (
+    <BrowserRouter>
+      <FirebaseProvider> {/* If FirebaseProvider needs to be high up */}
+        <ThemeProvider> {/* ThemeProvider should wrap anything that uses useTheme */}
+          <App />
+        </ThemeProvider>
+      </FirebaseProvider>
+    </BrowserRouter>
+  );
+}
+
+// Renamed original App to AppContent or similar, or keep as App
+// if AppWrapper is the new default export.
+function App() { // This is now the component that uses the theme
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { theme, themeName } = useTheme(); // Call useTheme() here
+  const styles = getStyles(theme); // Get styles with the current theme
+
+  const getActiveIcon = (): IconName => {
+    const path = location.pathname.toLowerCase();
+    if (path.startsWith('/newworkout')) return 'newWorkout';
+    if (path.startsWith('/profile')) return 'profile';
+    return 'home';
+  };
+
+  const handleIconPress = (iconName: IconName) => {
+    if (iconName === 'home') navigate('/');
+    else navigate(`/${iconName}`);
+  };
+
+  return (
+    <div style={styles.appContainer}> {/* styles.appContainer now has themed background */}
+      <div style={styles.contentArea}>
+        <Routes>
+          <Route path="/" element={<HomeContent />} />
+          <Route path="/newworkout" element={<NewWorkoutPage />} />
+          <Route path="/profile" element={<ProfileContent />} />
+          <Route path="/crates" element={<CratesPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/settings" element={<SettingsPage />} /> {/* SettingsPage uses useTheme internally */}
+        </Routes>
+      </div>
+      <Navbar
+        activeIcon={getActiveIcon()}
+        onIconPress={handleIconPress}
+        // Pass theme to Navbar if it's not using useTheme() internally
+        // Or ensure Navbar uses useTheme()
+      />
+    </div>
+  );
+}
+
+export default AppWrapper; // Export the AppWrapper as the main entry point

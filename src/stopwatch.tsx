@@ -3,7 +3,7 @@ import  { useState, useEffect, useRef } from 'react';
 import styles from './Stopwatch.module.css'; // We'll create this CSS module
 
 const Stopwatch = () => {
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(0); // Initial time
   // const [isRunning, setIsRunning] = useState(false); // Not strictly needed for auto-start without controls
   const intervalRef = useRef<number | null>(null); // Use `number` for browser interval ID
 

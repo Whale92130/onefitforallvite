@@ -1,5 +1,6 @@
 // src/components/AddExercise.tsx (using TypeScript since original uses FC and interfaces)
 import React, { useState, FC } from 'react';
+import Stopwatch from './stopwatch';
 import styles from './AddExercise.module.css'; // We'll create this CSS module
 
 interface SetItem { // Renamed Set to SetItem to avoid conflict with built-in Set
@@ -148,19 +149,32 @@ const AddExercise: FC<Props> = ({ onDelete }) => {
 };
 // Parent component (NewWorkout)
 const NewWorkout: FC<NewWorkoutProps> = () => {
-  const [exerciseCount, setExerciseCount] = useState(1); // Start with one exercise
+ const [exerciseCount, setExerciseCount] = useState(1); // Start with one exercise
+ const [showStopwatch, setShowStopwatch] = useState(false);
+ const [isWorkoutVisible, setIsWorkoutVisible] = useState(false);
 
   const addExercise = () => {
     setExerciseCount(prevCount => prevCount + 1);
   };
 
-  const deleteExercise = () => {
-    setExerciseCount(prevCount => Math.max(1, prevCount - 1)); // Ensure at least one exercise
+ const deleteExercise = () => {
+ setExerciseCount(prevCount => Math.max(1, prevCount - 1)); // Ensure at least one exercise
+ };
+
+ const handleNewWorkoutClick = () => {
+ setShowStopwatch(true);
+ setIsWorkoutVisible(true);
   };
 
   return (
     <div>
-      {[...Array(exerciseCount)].map((_, index) => (<AddExercise key={index} onDelete={deleteExercise} />))}      <button onClick={addExercise}>add exercise</button>{exerciseCount > 1 && <button onClick={deleteExercise}>remove exercise</button>}
+      <button onClick={handleNewWorkoutClick}>New Workout</button>
+      {isWorkoutVisible && (
+        <div>
+          {[...Array(exerciseCount)].map((_, index) => (<AddExercise key={index} onDelete={deleteExercise} />))}      <button onClick={addExercise}>add exercise</button>{exerciseCount > 1 && <button onClick={deleteExercise}>remove exercise</button>}
+        </div>
+      )}
     </div>
   );
-};export default NewWorkout;
+};
+export default NewWorkout;

@@ -1,24 +1,14 @@
 import React, { CSSProperties } from 'react';
-
-// --- Asset Imports ---
-// Use standard ES module imports for assets in Vite.
-// Adjust these paths based on your actual project structure.
-// import homeIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/home_icon.png';
-// import newWorkoutIconSrc from '/home/user/onefitforallvite/src/assets/navbar_icons/start_icon.png';
-// import profileIconSrc from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg'; // Assuming this is the correct profile icon
-
-// --- Colors Import ---
-// Assuming you have a colors definition file (e.g., src/styles/colors.ts)
-// If not, replace Colors properties with actual color values.
-import { Colors } from './colors'; // Adjust path as needed
+import { useTheme } from './ThemeContext'; // Correct: Import useTheme
+import { ThemeName } from './colors'; // Import ThemeName if you need it for type checking
 
 // --- Type Definitions ---
 export type IconName = 'home' | 'newWorkout' | 'profile';
 
-// Interface for icon configuration, using string for image source paths
+// Interface for icon configuration
 type IconConfig = {
   name: IconName;
-  source: string; // Changed from ImageSourcePropType to string for import path
+  source: string;
 };
 
 // Props for the Navbar component
@@ -28,7 +18,6 @@ export type NavbarProps = {
 };
 
 // --- Icon Data ---
-// Define the icons using the imported image sources
 const ICONS: IconConfig[] = [
   {
     name: 'home',
@@ -44,97 +33,105 @@ const ICONS: IconConfig[] = [
   },
 ];
 
-// --- Styles Definition ---
-const styles: { [key: string]: CSSProperties } = {
-  navbar: {
-    display: 'flex', // Use flexbox for layout
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: Colors.background || '#ffffff', // Provide fallback
-    height: 42,
-    paddingLeft: 10, // Use standard padding properties
-    paddingRight: 10,
-    width: '100%', // Ensure navbar spans width
-    boxSizing: 'border-box', // Include padding/border in width
-    flexShrink: 0,
-  },
-  // Style for the button container
-  iconContainer: {
-    flex: 1, // Allow each container to take equal space
-    display: 'flex', // Use flex to center content
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%', // Make container fill navbar height
-    // Reset button default styles
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    margin: 0,
-    cursor: 'pointer',
-    outline: 'none',
-    WebkitTapHighlightColor: 'transparent',
-  },
-  // Base style for all icons
-  iconImage: {
-    width: 28,
-    height: 28,
-    display: 'block', // Remove potential extra space below image
-    objectFit: 'contain', // Or 'cover', depending on desired image scaling
-    filter: 'grayscale(100%) brightness(0%)',
-  },
-  // Specific overrides for the profile icon
-  profileIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: '50%', // Use 50% for circle
-    border: `1px solid ${Colors.textPrimary || '#333333'}`, // Use border shorthand, add fallback
-    objectFit: 'cover', // Usually better for profile pictures
-  },
-  // Style for active state (using opacity instead of tintColor)
-  activeIconStyle: {
-    opacity: 1,
-    filter: 'invert(45%) sepia(30%) saturate(2000%) hue-rotate(180deg) brightness(105%) contrast(90%)',
-  },
-  // Style for inactive state (using opacity instead of tintColor)
-  inactiveIconStyle: {
-    opacity: 0.6,
-    filter: 'grayscale(100%) brightness(0%)',
-  },
-};
-
-
 // --- Navbar Component ---
-const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => (
-  // Use <nav> for semantic correctness
-  <nav style={styles.navbar}>
-    {ICONS.map((icon) => (
-      // Use <button> for interactive elements
-      <button
-        key={icon.name}
-        style={styles.iconContainer}
-        onClick={() => onIconPress(icon.name)} // Use onClick for web
-        type="button" // Specify button type
-        aria-label={`Navigate to ${icon.name}`} // Add accessibility label
-      >
-        {/* Use <img> for images */}
-        <img
-          src={icon.source} // Use src attribute with imported image path
-          alt={`${icon.name} icon`} // Add descriptive alt text
-          style={{
-            ...styles.iconImage, // Apply base icon style
-            ...(icon.name === 'profile' ? styles.profileIcon : {}), // Apply profile specific style if needed
-            ...(activeIcon === icon.name // Apply active/inactive style based on opacity
-              ? styles.activeIconStyle
-              : styles.inactiveIconStyle),
-            // Note: The 'tintColor' effect from activeIcon/inactiveIcon styles
-            // cannot be directly replicated on <img> tags using CSS.
-            // We are using opacity here as an alternative visual cue.
-          }}
-        />
-      </button>
-    ))}
-  </nav>
-);
+const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
+  // 1. Call useTheme() INSIDE the component
+  // Destructure themeName as well to check which theme is active
+  const { theme, themeName } = useTheme();
+
+  // 2. Define styles INSIDE the component or make it a function
+  const styles: { [key: string]: CSSProperties } = {
+    navbar: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      backgroundColor: theme.background,
+      height: "60px",
+      paddingLeft: 10,
+      paddingRight: 10,
+      width: '100%',
+      boxSizing: 'border-box',
+      flexShrink: 0,
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      zIndex: 1000,
+      borderTop: `1px solid ${theme.secondary}`,
+    },
+    iconContainer: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      margin: 0,
+      cursor: 'pointer',
+      outline: 'none',
+      WebkitTapHighlightColor: 'transparent',
+    },
+    iconImage: {
+      width: 28,
+      height: 28,
+      display: 'block',
+      objectFit: 'contain',
+    },
+    profileIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: '50%',
+      border: `1px solid ${theme.textPrimary}`,
+      objectFit: 'cover',
+     
+    },
+    activeIconStyle: {
+      // Your existing active style, or adjust as needed
+      // This filter is a blueish tint, you might want to tie it to theme.primary or theme.button
+      filter: `invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)`,
+      opacity: 1,
+    },
+    // Conditionally set the inactive icon style
+    inactiveIconStyle: {
+      filter: themeName === 'light'
+        ? 'grayscale(100%) brightness(40%) contrast(100%)' // Tint dark on light theme
+        : 'invert(100%) brightness(2000%) contrast(90%)', // Tint light on dark theme
+      // Explanation of filter values:
+      // grayscale(100%): Makes the icon monochrome.
+      // brightness(40%): Makes it darker (values < 100%). For light theme.
+      // brightness(150%): Makes it lighter (values > 100%). For dark theme.
+      // contrast(100%): Keeps normal contrast, adjust if needed.
+    },
+  };
+
+  return (
+    <nav style={styles.navbar}>
+      {ICONS.map((icon) => (
+        <button
+          key={icon.name}
+          style={styles.iconContainer}
+          onClick={() => onIconPress(icon.name)}
+          type="button"
+          aria-label={`Navigate to ${icon.name}`}
+          aria-current={activeIcon === icon.name ? 'page' : undefined}
+        >
+          <img
+            src={icon.source}
+            alt={`${icon.name} icon`}
+            style={{
+              ...styles.iconImage,
+              ...(icon.name === 'profile' ? styles.profileIcon : {}),
+              ...(activeIcon === icon.name
+                ? styles.activeIconStyle
+                : styles.inactiveIconStyle), // This will now apply the conditional style
+            }}
+          />
+        </button>
+      ))}
+    </nav>
+  );
+};
 
 export default Navbar;

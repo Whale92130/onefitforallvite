@@ -4,7 +4,7 @@
     flex-direction: column; /* Stack children vertically */
     justify-content: center; /* Center vertically */
     align-items: center; /* Center horizontally */
-    min-height: 100vh; /* Ensure it takes full viewport height */
+    min-height: 20vh; /* Ensure it takes full viewport height */
     position: relative; /* Needed for absolute positioning of children */
     box-sizing: border-box;
     padding: 20px;
@@ -17,13 +17,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 180px; /* Space for buttons below */
-    min-height: 180px; /* Ensure space is reserved even when empty */
+    margin-bottom: 140px; /* Space for buttons below */
+    min-height: 40px; /* Ensure space is reserved even when empty */
     text-align: center;
   }
   
   .placeholder {
-      min-height: 180px; /* Match the potential height of the result */
+      min-height: 40px; /* Match the potential height of the result */
   }
   
   .themeText {
@@ -34,8 +34,8 @@
   }
   
   .square {
-    width: 100px;
-    height: 100px;
+    width: 40px;
+    height: 40px;
     border: 1px solid gray;
     margin-bottom: 10px;
   }
@@ -48,8 +48,8 @@
   /* Crate Image and Animation */
   .crateImage {
     position: absolute;
-    width: 150px; /* Adjust size as needed */
-    height: 150px;
+    width: 30px; /* Adjust size as needed */
+    height: 30px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%); /* Center precisely */
@@ -81,14 +81,16 @@
   /* Button Styles */
   .buttonContainer {
     position: absolute;
-    bottom: 90px; /* Position from bottom */
+    bottom: 70px; /* Position from bottom */
     left: 50%;
     transform: translateX(-50%); /* Center the container */
     display: flex; /* Arrange buttons horizontally */
-    gap: 20px; /* Space between buttons */
+    gap: 40px; /* Space between buttons */
     width: auto; /* Allow container to size based on buttons */
+    padding: 15px;
     justify-content: center; /* Center buttons within the container */
   }
+  
   
   .button {
     padding: 12px 20px; /* Adjusted padding */
@@ -125,8 +127,8 @@
   }
   
   .openButton {
-      padding: 15px 30px;
-      font-size: 18px;
+      padding: 10px 20px;
+      font-size: 16px;
       background-color: #ff9800; /* Orange */
       color: white;
       border: none;

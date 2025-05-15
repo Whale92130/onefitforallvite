@@ -3,8 +3,8 @@ import { CSSProperties } from 'react'; // Import CSSProperties for type checking
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors.primary and Colors.textPrimary with actual color values
 // Make sure the path is correct relative to this file.
-import { Colors } from './colors'; // Adjust the path as needed
-
+//import { Colors } from './colors'; // Adjust the path as needed
+import { useTheme } from './ThemeContext';
 // Define an interface for the workout data structure
 interface Workout {
   id: string;
@@ -30,68 +30,70 @@ const workoutData: Workout[] = [
 
 // Define styles as JS objects. Use CSSProperties for type safety.
 // React Native style properties (camelCase) map directly to React inline style properties.
-const styles: { [key: string]: CSSProperties } = {
-  container: {
-    width: "100%",
-    height: "100%", // Be cautious with 100% height in web context, might need specific parent height
-    display: 'flex',
-    flexDirection: 'column', // Stays camelCase
-    alignItems: 'center', // Stays camelCase
-    backgroundColor: Colors.primary, // Use imported color value
-    borderRadius: 10, // Use numbers (pixels) or string ('10px')
-    padding: 10,
-    boxSizing: 'border-box', // Recommended for predictable sizing with padding/borders
-  },
-  heading: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginBottom: 5, // Adjusted slightly for web spacing
-    textAlign: 'center',
-  },
-  scrollContainer: {
-    width: '100%',
-    marginTop: 10,
-    overflowX: 'auto', // Key style to replicate horizontal ScrollView
-    overflowY: 'hidden', // Hide vertical scrollbar if it appears
-    // Note: Advanced scrollbar styling (::-webkit-scrollbar etc.) is NOT possible with inline styles
-  },
-  scrollContentContainer: {
-    display: 'flex', // Use flexbox to lay out items horizontally
-    flexDirection: 'row', // Explicitly set row direction
-    alignItems: 'flex-start',
-    paddingBottom: 0, // Add some padding at the bottom, e.g., for scrollbar space
-    // paddingRight: 15, // We handle spacing with marginRight on items instead
-  },
-  // Base style for workout items - separated for easier conditional margin logic
-  workoutItemBase: {
-    width: 120,
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    flexShrink: 0, // Prevent items from shrinking when space is limited
-  },
-  // Margin style to apply conditionally to items except the last one
-  workoutItemMargin: {
-    marginRight: 10,
-  },
-  image: {
-    width: 120,
-    height: 80,
-    borderRadius: 8,
-    objectFit: 'cover', // Ensures image covers the area well
-    display: 'block', // Prevents potential extra space below the image
-  },
-  workoutName: {
-    marginTop: 5,
-    fontSize: 12,
-    color: Colors.textPrimary,
-    textAlign: 'center', // Center the name under the image
-  },
-};
+
 
 
 function RecommendedWorkouts() {
+  const {theme} = useTheme();
+  const styles: { [key: string]: CSSProperties } = {
+    container: {
+      width: "100%",
+      height: "100%", // Be cautious with 100% height in web context, might need specific parent height
+      display: 'flex',
+      flexDirection: 'column', // Stays camelCase
+      alignItems: 'center', // Stays camelCase
+      backgroundColor: theme.primary, // Use imported color value
+      borderRadius: 10, // Use numbers (pixels) or string ('10px')
+      padding: 10,
+      boxSizing: 'border-box', // Recommended for predictable sizing with padding/borders
+    },
+    heading: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: theme.textPrimary,
+      marginBottom: 5, // Adjusted slightly for web spacing
+      textAlign: 'center',
+    },
+    scrollContainer: {
+      width: '100%',
+      marginTop: 10,
+      overflowX: 'auto', // Key style to replicate horizontal ScrollView
+      overflowY: 'hidden', // Hide vertical scrollbar if it appears
+      // Note: Advanced scrollbar styling (::-webkit-scrollbar etc.) is NOT possible with inline styles
+    },
+    scrollContentContainer: {
+      display: 'flex', // Use flexbox to lay out items horizontally
+      flexDirection: 'row', // Explicitly set row direction
+      alignItems: 'flex-start',
+      paddingBottom: 0, // Add some padding at the bottom, e.g., for scrollbar space
+      // paddingRight: 15, // We handle spacing with marginRight on items instead
+    },
+    // Base style for workout items - separated for easier conditional margin logic
+    workoutItemBase: {
+      width: 120,
+      alignItems: 'center',
+      display: 'flex',
+      flexDirection: 'column',
+      flexShrink: 0, // Prevent items from shrinking when space is limited
+    },
+    // Margin style to apply conditionally to items except the last one
+    workoutItemMargin: {
+      marginRight: 10,
+    },
+    image: {
+      width: 120,
+      height: 80,
+      borderRadius: 8,
+      objectFit: 'cover', // Ensures image covers the area well
+      display: 'block', // Prevents potential extra space below the image
+    },
+    workoutName: {
+      marginTop: 5,
+      fontSize: 12,
+      color: theme.textPrimary,
+      textAlign: 'center', // Center the name under the image
+    },
+  };
   return (
     // Use standard HTML elements (div, h2, p, img) and apply styles using the `style` prop
     <div style={styles.container}>
