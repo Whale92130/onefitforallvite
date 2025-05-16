@@ -55,6 +55,7 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: theme.primary || '#f0f0f0', // Provide fallback color
     padding: 8,
     borderRadius: 15,
+    marginRight: 10,
   },
   // Specific style for the fire icon image
   fireIcon: {

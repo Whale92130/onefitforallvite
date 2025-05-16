@@ -24,7 +24,7 @@ import { FirebaseProvider } from './FirebaseContext';
 const NewWorkoutPage = () => {
   const { theme } = useTheme(); // Get theme for this page if needed
   return (
-    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary}}>
       <h2>Please don't tab out or your progess will be lost!</h2>
       <NewWorkout />
     </div>
@@ -33,7 +33,7 @@ const NewWorkoutPage = () => {
 const CratesPage = () => {
   const { theme } = useTheme(); // Get theme for this page if needed
   return (
-    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: '100%' }}>
       <OpenCrateScreen />
     </div>
   );
@@ -51,60 +51,64 @@ const ShopPage = () => {
 
 
 // --- Styles Definition: Make it a function that accepts theme ---
-const getStyles = (theme: any): { [key: string]: CSSProperties } => ({ // 'any' for theme for brevity, use your Theme interface ideally
+// --- Styles Definition: Make it a function that accepts theme ---
+const NAV_HEIGHT = 60;  // px
+
+const getStyles = (theme: any): { [key: string]: CSSProperties } => ({
   appContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100vh', // Use vh for full viewport height
-    backgroundColor: theme.background, // Now theme is available
+    height: '100%',                   // <— full height of root (not 100vh)
+    backgroundColor: theme.background,
+    overflow: 'auto',
   },
   contentArea: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    overflowY: 'auto', // Allow content to scroll if it overflows
-    // paddingBottom: 60, // Navbar is outside this, so padding might not be needed here
+    overflow: 'auto',
+    /* reserve space *and* the iOS bottom‐safe‐area */
+    paddingBottom: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
   },
   homePageLayout: {
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
     padding: 5,
-    // backgroundColor: theme.background, // If HomeContent needs its own background
-    // color: theme.textPrimary,
+    overflow: 'hidden',
   },
   topSection: {
+    flex: '0 0 auto',              // only as tall as content
     marginBottom: 10,
   },
   bottomSection: {
+    flex: 1,                       // fill remaining vertical space
     display: 'flex',
-    flexDirection: 'row',
-    // height: '100%', // This can be tricky, let flex grow handle it
-    flexGrow: 1,
     gap: 10,
+    overflow: 'hidden',
   },
   bottomItem: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
+    overflow: 'hidden',              // inner scroll if its content is too big
   },
   profilePageLayout: {
     display: 'flex',
     flexDirection: 'column',
     flex: 1,
     padding: 10,
-    // backgroundColor: theme.background,
-    // color: theme.textPrimary,
+    overflow: 'hidden',
   },
   horizontalButtons: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 0, // Consider adding some gap if needed: theme.spacing.small or similar
-    marginTop: 0,
-    alignItems: 'center',
+    gap: theme.spacing?.small || 8,
+    marginTop: 10,
   },
 });
+
 
 // --- Child Components that need styles and theme ---
 const HomeContent = () => {

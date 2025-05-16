@@ -55,7 +55,7 @@ const SettingsPage = () => {
 
   return (
     <div style={{ background: theme.background, color: theme.textPrimary, minHeight: '100vh', padding: '1rem', transition: 'background 0.3s, color 0.3s' }}>
-      <h1 style={{ color: theme.primary }}>Settings (Current: {themeName})</h1>
+      <h1 style={{ color: theme.textPrimary }}>Settings (Current: {themeName})</h1>
       <button style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleSignOut}>
         Sign Out
       </button>
@@ -76,11 +76,11 @@ const SettingsPage = () => {
         Dark Theme
       </button>
       <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'goodBoy' ? 0.7 : 1 }}
-        onClick={() => setTheme('goodBoy')} // Directly call setTheme
-        disabled={themeName === 'goodBoy'}
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'winter' ? 0.7 : 1 }}
+        onClick={() => setTheme('winter')} // Directly call setTheme
+        disabled={themeName === 'winter'}
       >
-        Good Boy Theme
+        Winter Theme
       </button>
       <button
         style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'CCA' ? 0.7 : 1 }}
@@ -90,9 +90,78 @@ const SettingsPage = () => {
         CCA Theme
       </button>
 
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'spring' ? 0.7 : 1 }}
+        onClick={() => setTheme('spring')} // Directly call setTheme
+        disabled={themeName === 'spring'}
+      >
+        Spring Theme
+      </button>
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'autumn' ? 0.7 : 1 }}
+        onClick={() => setTheme('autumn')} // Directly call setTheme
+        disabled={themeName === 'autumn'}
+      >
+        Autumn Theme
+      </button>
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'summer' ? 0.7 : 1 }}
+        onClick={() => setTheme('summer')} // Directly call setTheme
+        disabled={themeName === 'summer'}
+      >
+        Summer Theme
+      </button>
+     
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'mrhare' ? 0.7 : 1 }}
+        onClick={() => setTheme('mrhare')} // Directly call setTheme
+        disabled={themeName === 'mrhare'}
+      >
+        Mr. Hare Theme
+      </button>
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'nether' ? 0.7 : 1 }}
+        onClick={() => setTheme('nether')} // Directly call setTheme
+        disabled={themeName === 'nether'}
+      >
+        THE NETHER Theme
+      </button>
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'midnight' ? 0.7 : 1 }}
+        onClick={() => setTheme('midnight')} // Directly call setTheme
+        disabled={themeName === 'midnight'}
+      >
+        Midnight Theme
+      </button>
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'america' ? 0.7 : 1 }}
+        onClick={() => setTheme('america')} // Directly call setTheme
+        disabled={themeName === 'america'}
+      >
+        America Theme
+      </button>
+
+
+      <button
+        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'enderpearl' ? 0.7 : 1 }}
+        onClick={() => setTheme('enderpearl')} // Directly call setTheme
+        disabled={themeName === 'enderpearl'}
+      >
+        Ender Pearl Theme
+      </button>
+
       <button style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleAboutClick}>
         {showAbout ? "Hide" : "Show"} About 1Fit4All
       </button>
+
+      
+      
+
 
       {showAbout && (
         <div style={{ marginTop: '1rem', padding: '1rem', background: theme.secondary, color: theme.textPrimary, borderRadius: '4px' }}>

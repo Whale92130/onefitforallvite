@@ -1,5 +1,4 @@
 import { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
-import React, { createContext, useState, useContext, ReactNode } from 'react';
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors.primary etc. with actual color values.
 // Make sure the path is correct relative to this file.

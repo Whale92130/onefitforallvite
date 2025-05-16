@@ -1,111 +1,213 @@
-// src/components/AddExercise.tsx (using TypeScript since original uses FC and interfaces)
-import React, { useState, FC } from 'react';
-import Stopwatch from './stopwatch';
-import styles from './AddExercise.module.css'; // We'll create this CSS module
+import React, { useState, FC, CSSProperties } from 'react';
+import { useTheme } from './ThemeContext';
+import Stopwatch from './stopwatch'; // Only keep if Stopwatch is actually used
 
-interface SetItem { // Renamed Set to SetItem to avoid conflict with built-in Set
+interface SetItem {
   weight: string;
   reps: string;
   type: 'regular' | 'warmup' | 'drop';
 }
 
-interface Props {
-  onDelete: () => void;
-}
+const NewWorkout: FC = () => {
+  const [exerciseCount, setExerciseCount] = useState(1);
+  const [isWorkoutVisible, setIsWorkoutVisible] = useState(false);
 
-interface NewWorkoutProps {
-}
+  const addExercise = () => setExerciseCount(c => c + 1);
+  const deleteExercise = () => setExerciseCount(c => Math.max(1, c - 1));
+  const startWorkout = () => setIsWorkoutVisible(true);
 
-const AddExercise: FC<Props> = ({ onDelete }) => {
+  return (
+    <div>
+      <button onClick={startWorkout}>New Workout</button>
+      {isWorkoutVisible && (
+        <>
+          {[...Array(exerciseCount)].map((_, i) => (
+            <AddExercise key={i} onDelete={deleteExercise} />
+          ))}
+          <button onClick={addExercise}>Add Exercise</button>
+          {exerciseCount > 1 && (
+            <button onClick={deleteExercise}>Remove Exercise</button>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+const AddExercise: FC<{ onDelete: () => void }> = ({ onDelete }) => {
   const [exerciseName, setExerciseName] = useState('');
+  const { theme } = useTheme();
   const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
   const muscleGroupOptions = [
-    'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Cardio',
+    'Chest','Back','Shoulders','Biceps','Triceps','Legs','Abs','Cardio'
   ];
-
-  const handleMuscleGroupChange = (itemValue: string) => {
-    setMuscleGroups(prevGroups =>
-      prevGroups.includes(itemValue) ? prevGroups.filter(group => group !== itemValue) : [...prevGroups, itemValue]
-    );
-  };
-
   const [sets, setSets] = useState<SetItem[]>([{ weight: '', reps: '', type: 'regular' }]);
   const [bodyweightReps, setBodyweightReps] = useState(false);
   const [lbs, setLbs] = useState(true);
+
+  const handleMuscleGroupChange = (group: string) => {
+    setMuscleGroups(prev =>
+      prev.includes(group) ? prev.filter(g => g !== group) : [...prev, group]
+    );
+  };
 
   const handleAddSet = () => {
     setSets([...sets, { weight: bodyweightReps ? 'BW' : '', reps: '', type: 'regular' }]);
   };
 
- const handleSetChange = (index: number, field: 'weight' | 'reps', value: string) => {
- // If bodyweight reps are active and user tries to change weight, prevent it
-    // Or, allow changing FROM 'BW' if bodyweightReps is turned off
-    if (bodyweightReps && field === 'weight' && sets[index].weight === 'BW') {
-        return; // Don't allow changing weight if it's 'BW' and bodyweightReps is on
-    }
-    const newSets = sets.map((s, i) => {
-        if (i === index) {
-            return { ...s, [field]: value };
-        }
-        return s;
-    });
-    setSets(newSets);
+  const handleSetChange = (index: number, field: 'weight' | 'reps', value: string) => {
+    if (bodyweightReps && field === 'weight' && sets[index].weight === 'BW') return;
+    setSets(sets.map((s, i) => i === index ? { ...s, [field]: value } : s));
   };
 
-  const handleBodyweightToggle = (isBW: boolean) => {
-    setBodyweightReps(isBW);
-    setSets(sets.map(set => ({
-      ...set,
-      weight: isBW ? 'BW' : '', // Reset weight field or set to BW
-      // reps: isBW ? '' : set.reps // Original logic, decide if reps should also reset
-    })));
+  const handleBodyweightToggle = (checked: boolean) => {
+    setBodyweightReps(checked);
+    setSets(sets.map(s => ({ ...s, weight: checked ? 'BW' : '' })));
+  };
+
+  const styles: { [key: string]: CSSProperties } = {
+    container: {
+      padding: 20,
+      position: 'relative',
+      fontFamily: 'Arial, sans-serif',
+    },
+    formBox: {
+      padding: 15,
+      borderRadius: 5,
+      backgroundColor: theme.background,
+    },
+    input: {
+      border: '1px solid black',
+      width: '40%',
+      padding: '8px 10px',
+      marginBottom: 10,
+      borderRadius: 4,
+      boxSizing: 'border-box',
+      fontSize: '1rem',
+    },
+    toggleContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 15,
+      gap: 10,
+    },
+    muscleGroupContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 15,
+      gap: 8,
+    },
+    muscleGroupButton: {
+      border: '1px solid gray',
+      padding: '8px 12px',
+      borderRadius: 5,
+      cursor: 'pointer',
+      backgroundColor: '#f0f0f0',
+      color: 'black',
+      fontSize: '0.9rem',
+      transition: 'background-color 0.2s ease, border-color 0.2s ease',
+    },
+    selectedMuscleGroup: {
+      backgroundColor: theme.button,
+      color: 'white',
+      borderColor: theme.secondary,
+    },
+    setRow: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      gap: 10,
+    },
+    setInput: {
+      border: '1px solid black',
+      flex: 1,
+      minWidth: 70,
+      padding: '8px 10px',
+      borderRadius: 4,
+      boxSizing: 'border-box',
+      fontSize: '1rem',
+    },
+    addSetButton: {
+      marginTop: 10,
+      padding: '8px 12px',
+      border: 'none',
+      backgroundColor: theme.primary,
+      color: theme.textPrimary,
+      borderRadius: 4,
+      cursor: 'pointer',
+    },
+    deleteButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      zIndex: 1,
+      padding: 8,
+      backgroundColor: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      lineHeight: 1,
+    },
+    checkbox: {
+      // Add styles here to change the appearance of the checkbox
+      accentColor: theme.primary, // Example: changes the color of the checked state
+      width: '1rem', // Example: adjusts the size
+      height: '1rem', // Example: adjusts the size
+    }
   };
 
   return (
-    <div className={styles.container}>
-        <button className={styles.deleteButton} onClick={onDelete} aria-label="Delete Exercise">
-        </button>
+    <div style={styles.container}>
+      <button
+        style={styles.deleteButton}
+        onClick={onDelete}
+        aria-label="Delete Exercise"
+      >
+        ❌
+      </button>
 
-      <div className={styles.formBox}>
-        <label htmlFor={`exerciseName-${React.useId()}`}>Exercise Name: </label>
+      <div style={styles.formBox}>
+        <label>Exercise Name:</label>
         <input
           type="text"
-          id={`exerciseName-${React.useId()}`}
-          className={styles.input}
+          style={styles.input}
           value={exerciseName}
-          onChange={(e) => setExerciseName(e.target.value)}
+          onChange={e => setExerciseName(e.target.value)}
           placeholder="Enter exercise name"
         />
 
-        <div className={styles.toggleContainer}>
-          <label htmlFor={`bodyweightReps-${React.useId()}`}>Body Weight Reps</label>
+        <div style={styles.toggleContainer}>
+          <label>Body Weight Reps</label>
           <input
             type="checkbox"
-            id={`bodyweightReps-${React.useId()}`}
             checked={bodyweightReps}
-            onChange={(e) => handleBodyweightToggle(e.target.checked)}
-            className={styles.switchInput} // For custom styling if needed
+            onChange={e => handleBodyweightToggle(e.target.checked)}
+            style={styles.checkbox}
           />
         </div>
 
-        <div className={styles.toggleContainer}>
-          <label htmlFor={`lbsToggle-${React.useId()}`}>{lbs ? 'Weight in Lbs' : 'Weight in Kg'}</label>
+        <div style={styles.toggleContainer}>
+          <label>{lbs ? 'Weight in Lbs' : 'Weight in Kg'}</label>
           <input
             type="checkbox"
-            id={`lbsToggle-${React.useId()}`}
             checked={lbs}
-            onChange={(e) => setLbs(e.target.checked)}
-            className={styles.switchInput}
+            style={styles.checkbox}
+            onChange={e => setLbs(e.target.checked)}
           />
         </div>
 
         <p>Muscle Groups:</p>
-        <div className={styles.muscleGroupContainer}>
+        <div style={styles.muscleGroupContainer}>
           {muscleGroupOptions.map(group => (
             <button
               key={group}
-              type="button" // Important for buttons in forms not to submit by default
-              className={`${styles.muscleGroupButton} ${muscleGroups.includes(group) ? styles.selectedMuscleGroup : ''}`}
+              type="button"
+              style={{
+                ...styles.muscleGroupButton,
+                ...(muscleGroups.includes(group) ? styles.selectedMuscleGroup : {})
+              }}
               onClick={() => handleMuscleGroupChange(group)}
             >
               {group}
@@ -114,67 +216,39 @@ const AddExercise: FC<Props> = ({ onDelete }) => {
         </div>
 
         <p>Sets and Reps:</p>
-        {sets.map((set, index) => (
-          <div key={index} className={styles.setRow}>
-            {/* setTypeContainer was empty, can be omitted or used for set type dropdown later */}
+        {sets.map((set, idx) => (
+          <div key={idx} style={styles.setRow}>
             <input
-              className={styles.setInput}
+              style={styles.setInput}
               value={set.weight}
-              onChange={(e) => handleSetChange(index, 'weight', e.target.value)}
+              onChange={e => handleSetChange(idx, 'weight', e.target.value)}
               placeholder={lbs ? "Weight (lbs)" : "Weight (kg)"}
-              type={bodyweightReps ? "text" : "number"} // Use text for "BW", number otherwise
-              readOnly={bodyweightReps && set.weight === 'BW'} // Make BW field read-only
-              min={bodyweightReps ? undefined : "0"} // Min value for numeric input
-              step={bodyweightReps ? undefined : "0.1"} // Allow decimals for weight
+              type={bodyweightReps ? 'text' : 'number'}
+              readOnly={bodyweightReps && set.weight === 'BW'}
+              min={bodyweightReps ? undefined : 0}
+              step={bodyweightReps ? undefined : 0.1}
             />
             <input
-              className={styles.setInput}
+              style={styles.setInput}
               value={set.reps}
-              onChange={(e) => handleSetChange(index, 'reps', e.target.value)}
+              onChange={e => handleSetChange(idx, 'reps', e.target.value)}
               placeholder="Reps"
               type="number"
-              min="0"
+              min={0}
             />
-            {/* Optionally, add a button to remove a specific set */}
-            {/* <button onClick={() => handleRemoveSet(index)}>Remove</button> */}
           </div>
         ))}
 
-        <button type="button" onClick={handleAddSet} className={styles.addSetButton}>
+        <button
+          type="button"
+          style={styles.addSetButton}
+          onClick={handleAddSet}
+        >
           Add Set
         </button>
       </div>
     </div>
   );
 };
-// Parent component (NewWorkout)
-const NewWorkout: FC<NewWorkoutProps> = () => {
- const [exerciseCount, setExerciseCount] = useState(1); // Start with one exercise
- const [showStopwatch, setShowStopwatch] = useState(false);
- const [isWorkoutVisible, setIsWorkoutVisible] = useState(false);
 
-  const addExercise = () => {
-    setExerciseCount(prevCount => prevCount + 1);
-  };
-
- const deleteExercise = () => {
- setExerciseCount(prevCount => Math.max(1, prevCount - 1)); // Ensure at least one exercise
- };
-
- const handleNewWorkoutClick = () => {
- setShowStopwatch(true);
- setIsWorkoutVisible(true);
-  };
-
-  return (
-    <div>
-      <button onClick={handleNewWorkoutClick}>New Workout</button>
-      {isWorkoutVisible && (
-        <div>
-          {[...Array(exerciseCount)].map((_, index) => (<AddExercise key={index} onDelete={deleteExercise} />))}      <button onClick={addExercise}>add exercise</button>{exerciseCount > 1 && <button onClick={deleteExercise}>remove exercise</button>}
-        </div>
-      )}
-    </div>
-  );
-};
 export default NewWorkout;

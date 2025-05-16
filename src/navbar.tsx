@@ -38,7 +38,56 @@ const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
   // 1. Call useTheme() INSIDE the component
   // Destructure themeName as well to check which theme is active
   const { theme, themeName } = useTheme();
-
+  const darkTint  = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
+  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';      // for “light” (white‐ish) text
+  let activeTint: string;
+  
+  if (themeName === 'light') {
+    activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+  } else if (themeName === 'dark') {
+    activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+  }else if (themeName === 'goodBoy') {
+    activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+  }else if (themeName === 'CCA') {
+    activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(105%)';
+  }else if (themeName === 'spring') {
+    activeTint = 'invert(50%) sepia(80%) saturate(8000%) hue-rotate(-65deg) brightness(100%) contrast(120%)';
+  }else if (themeName === 'summer') {
+    activeTint = 'invert(45%) sepia(60%) saturate(5000%) hue-rotate(170deg) brightness(155%) contrast(90%)';
+  }else if (themeName === 'winter') {
+    activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+  }else if (themeName === 'autumn') {
+    activeTint = 'invert(20%) sepia(95%) saturate(2000%) hue-rotate(-5deg) brightness(85%) contrast(90%)';
+  }else if (themeName === 'mrhare') {
+    activeTint = 'invert(96%) sepia(15%) saturate(5000%) hue-rotate(5deg) brightness(200%) contrast(70%)';
+  }else if (themeName === 'nether') {
+    activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(105%)';
+  }else if (themeName === 'midnight') {
+    activeTint = 'invert(45%) sepia(60%) saturate(2500%) hue-rotate(170deg) brightness(25%) contrast(50%)';
+  }else if (themeName === 'america') {
+    activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(165%)';
+  }else if (themeName === 'enderpearl') {
+    activeTint = 'invert(15%) sepia(60%) saturate(8000%) hue-rotate(270deg) brightness(90%) contrast(105%)';
+  } else {
+    activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+  }
+  // 2) Explicit map of *every* themeName → the filter you want:
+  const iconFilterByTheme: Record<ThemeName, string> = {
+    light:   darkTint,
+    dark:    lightTint,
+    goodBoy: lightTint,  // white textPrimary  
+    CCA:     lightTint,  // white textPrimary
+    spring:  darkTint,   // black textPrimary
+    summer:  darkTint,   // black textPrimary
+    winter:  darkTint,   // black textPrimary
+    autumn:  lightTint,  // white textPrimary
+    mrhare:  darkTint,   // black textPrimary
+    nether:  lightTint,  // white textPrimary
+    midnight:lightTint,  // white textPrimary
+    america: darkTint,   // black textPrimary
+    enderpearl: lightTint,
+  };
+  const iconFilter = iconFilterByTheme[themeName] || darkTint;
   // 2. Define styles INSIDE the component or make it a function
   const styles: { [key: string]: CSSProperties } = {
     navbar: {
@@ -90,14 +139,14 @@ const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
     activeIconStyle: {
       // Your existing active style, or adjust as needed
       // This filter is a blueish tint, you might want to tie it to theme.primary or theme.button
-      filter: `invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)`,
+      filter: activeTint,
+
+
       opacity: 1,
     },
     // Conditionally set the inactive icon style
     inactiveIconStyle: {
-      filter: themeName === 'light'
-        ? 'grayscale(100%) brightness(40%) contrast(100%)' // Tint dark on light theme
-        : 'invert(100%) brightness(2000%) contrast(90%)', // Tint light on dark theme
+      filter: iconFilter,
       // Explanation of filter values:
       // grayscale(100%): Makes the icon monochrome.
       // brightness(40%): Makes it darker (values < 100%). For light theme.
