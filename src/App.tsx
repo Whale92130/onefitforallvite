@@ -1,4 +1,4 @@
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate, BrowserRouter } from 'react-router-dom';
 
 // --- Import Converted Page/Layout Components ---
@@ -15,16 +15,19 @@ import OpenCrateButton from './openCrate';
 import SettingsPage from './settings';
 import { useTheme } from './ThemeContext'; // Correct: Import useTheme
 import { ThemeProvider } from './ThemeContext'; // <<<--- ADD THIS: To provide the theme context
-
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { useFirebaseContext } from './FirebaseContext';
 // --- Colors Import (adjust path as needed) ---
 import { FirebaseProvider } from './FirebaseContext';
+import {ThemeName} from './colors';
 
 
 // Placeholder for NewWorkout page component
 const NewWorkoutPage = () => {
   const { theme } = useTheme(); // Get theme for this page if needed
   return (
-    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary}}>
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, overflow: 'auto'}}>
       <h2>Please don't tab out or your progess will be lost!</h2>
       <NewWorkout />
     </div>
@@ -42,7 +45,7 @@ const CratesPage = () => {
 const ShopPage = () => {
   const { theme } = useTheme(); // Get theme for this page if needed
   return (
-    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, minHeight: 'calc(100vh - 60px)' }}>
+    <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary,minHeight: '100%', overflow: 'hidden' }}>
       <h2>Shop Page</h2>
       <p>Coming soon!</p>
     </div>
@@ -66,7 +69,7 @@ const getStyles = (theme: any): { [key: string]: CSSProperties } => ({
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'auto',
+    overflow: 'hidden',
     /* reserve space *and* the iOS bottom‐safe‐area */
     paddingBottom: `calc(${NAV_HEIGHT}px + env(safe-area-inset-bottom))`,
   },
@@ -171,6 +174,30 @@ function App() { // This is now the component that uses the theme
   const location = useLocation();
   const { theme, themeName } = useTheme(); // Call useTheme() here
   const styles = getStyles(theme); // Get styles with the current theme
+  const { user, loading: authLoading } = useFirebaseContext();
+  const { setTheme } = useTheme();
+  const db = getFirestore();
+  const auth = getAuth();
+
+  useEffect(() => {
+    // once auth is ready and we have a user, fetch their theme
+    if (authLoading || !user) return;
+
+    (async () => {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const snap = await getDoc(userRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.theme && typeof data.theme === 'string') {
+            setTheme(data.theme as ThemeName);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading user theme on startup:', err);
+      }
+    })();
+  }, [authLoading, user, db, setTheme]);
 
   const getActiveIcon = (): IconName => {
     const path = location.pathname.toLowerCase();

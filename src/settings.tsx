@@ -1,27 +1,74 @@
-import { useState, useEffect } from "react";
-import useFirebase from "./useFirebase"; // Assuming this hook is correctly set up
-import { useTheme } from "./ThemeContext"; // Make sure this path is correct for your ThemeProvider file
-import { ThemeName } from "./colors"; // Import ThemeName if you need to be explicit, though setTheme should be typed
-
-// const themeOrder = ['light', 'dark', 'goodBoy', 'CCA'] as const; // Not strictly needed here if ThemeName is imported
-// type ThemeName = typeof themeOrder[number]; // This type should come from your colors.ts or ThemeContext
+// src/SettingsPage.tsx
+import { CSSProperties, useEffect, useState } from "react";
+import { getAuth } from "firebase/auth";
+import useFirebase from "./useFirebase";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
+import { useTheme } from "./ThemeContext";
+import { ThemeName } from "./colors";
+import SignInPage from "./signInPage";
 
 const SettingsPage = () => {
+  const auth = getAuth();
+  const db = getFirestore();
+  const user = auth.currentUser;
   const [showAbout, setShowAbout] = useState(false);
   const { signout } = useFirebase();
 
-  // 1. Destructure `setTheme` and `themeName` from useTheme
   const { theme, setTheme, themeName } = useTheme();
+  const [loading, setLoading] = useState(true);
 
-  // 2. The useEffect is not strictly necessary for theme changes IF:
-  //    - Your ThemeProvider correctly re-renders its children when the theme state changes.
-  //    - All your styling is done through the `theme` object (e.g., inline styles or styled-components).
-  //    If you needed to, say, set a class on the <body> element, then useEffect would be useful.
-  // useEffect(() => {
-  //   console.log("Theme changed to:", themeName);
-  //   // If you need to do side effects like changing document.body.className, do it here.
-  //   // document.body.className = `theme-${themeName}`;
-  // }, [themeName]); // Depend on themeName as it's more direct for "which theme is active"
+  // inline styles just for demo
+  const btnStyle: CSSProperties = {
+    margin: 8,
+    padding: "0.5rem 1rem",
+    border: "none",
+    borderRadius: 4,
+    cursor: "pointer",
+  };
+
+  // 1) Load saved theme on mount
+  useEffect(() => {
+    if (!user) return;
+
+    (async () => {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.theme && typeof data.theme === "string") {
+          setTheme(data.theme as ThemeName);
+        }
+      }
+
+      setLoading(false);
+    })();
+  }, [user, db, setTheme]);
+
+  // 2) When themeName changes, save to Firestore
+  useEffect(() => {
+    if (!user || loading) return;
+
+    const save = async () => {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(
+        userRef,
+        {
+          theme: themeName,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }  // only updates these fields
+      );
+    };
+    save();
+  }, [user, db, themeName, loading]);
 
   const handleSignOut = () => {
     if (signout) { // Good practice to check if signout exists
@@ -30,131 +77,51 @@ const SettingsPage = () => {
       console.error("Firebase signout function is not available.");
     }
   };
-
-  // 3. Correct the button handlers to use the `setTheme` from context
-  //    And ensure the labels match the action.
-
-  // You can remove these handlers and call setTheme directly in onClick if you prefer
-  // const handleSetLightThemeClick = () => {
-  //   setTheme('light');
-  // };
-  // const handleSetDarkThemeClick = () => {
-  //   setTheme('dark');
-  // };
-  // const handleSetGoodBoyThemeClick = () => {
-  //   setTheme('goodBoy');
-  // };
-  // const handleSetCCAThemeClick = () => {
-  //   setTheme('CCA');
-  // };
-
-
   const handleAboutClick = () => {
     setShowAbout(!showAbout);
   };
 
+  if (!user) return <>
+    <p style={{ textAlign: 'center', padding: 20, background: theme.background, color: theme.textPrimary }}>Please sign in to change your settings.</p>
+    <SignInPage />
+  </>;
+  if (loading) return <p>Loading your settings…</p>;
+
   return (
-    <div style={{ background: theme.background, color: theme.textPrimary, minHeight: '100vh', padding: '1rem', transition: 'background 0.3s, color 0.3s' }}>
-      <h1 style={{ color: theme.textPrimary }}>Settings (Current: {themeName})</h1>
-      <button style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleSignOut}>
-        Sign Out
-      </button>
-      
-      {/* Theme Switching Buttons */}
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'light' ? 0.7 : 1 }}
-        onClick={() => setTheme('light')} // Directly call setTheme
-        disabled={themeName === 'light'}
-      >
-        Light Theme
-      </button>
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'dark' ? 0.7 : 1 }}
-        onClick={() => setTheme('dark')} // Directly call setTheme
-        disabled={themeName === 'dark'}
-      >
-        Dark Theme
-      </button>
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'winter' ? 0.7 : 1 }}
-        onClick={() => setTheme('winter')} // Directly call setTheme
-        disabled={themeName === 'winter'}
-      >
-        Winter Theme
-      </button>
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'CCA' ? 0.7 : 1 }}
-        onClick={() => setTheme('CCA')} // Directly call setTheme
-        disabled={themeName === 'CCA'}
-      >
-        CCA Theme
-      </button>
+    <div style={{ padding: 20, background: theme.background, color: theme.textPrimary }}>
+      <h1>Settings</h1>
+      <h2> Current Theme: {themeName} </h2>
 
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'spring' ? 0.7 : 1 }}
-        onClick={() => setTheme('spring')} // Directly call setTheme
-        disabled={themeName === 'spring'}
-      >
-        Spring Theme
-      </button>
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'autumn' ? 0.7 : 1 }}
-        onClick={() => setTheme('autumn')} // Directly call setTheme
-        disabled={themeName === 'autumn'}
-      >
-        Autumn Theme
-      </button>
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'summer' ? 0.7 : 1 }}
-        onClick={() => setTheme('summer')} // Directly call setTheme
-        disabled={themeName === 'summer'}
-      >
-        Summer Theme
-      </button>
-     
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'mrhare' ? 0.7 : 1 }}
-        onClick={() => setTheme('mrhare')} // Directly call setTheme
-        disabled={themeName === 'mrhare'}
-      >
-        Mr. Hare Theme
-      </button>
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'nether' ? 0.7 : 1 }}
-        onClick={() => setTheme('nether')} // Directly call setTheme
-        disabled={themeName === 'nether'}
-      >
-        THE NETHER Theme
-      </button>
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'midnight' ? 0.7 : 1 }}
-        onClick={() => setTheme('midnight')} // Directly call setTheme
-        disabled={themeName === 'midnight'}
-      >
-        Midnight Theme
-      </button>
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'america' ? 0.7 : 1 }}
-        onClick={() => setTheme('america')} // Directly call setTheme
-        disabled={themeName === 'america'}
-      >
-        America Theme
-      </button>
-
-
-      <button
-        style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: themeName === 'enderpearl' ? 0.7 : 1 }}
-        onClick={() => setTheme('enderpearl')} // Directly call setTheme
-        disabled={themeName === 'enderpearl'}
-      >
-        Ender Pearl Theme
-      </button>
-
+      {(["light",
+        "dark",
+        "winter",
+        "CCA",
+        "spring",
+        "autumn",
+        "summer",
+        "mrhare",
+        "nether",
+        "midnight",
+        "america",
+        "enderpearl"] as ThemeName[]
+      ).map((t) => (
+        <button
+          key={t}
+          onClick={() => setTheme(t)}
+          disabled={themeName === t}
+          style={{
+            ...btnStyle,
+            background: theme.button,
+            color: theme.textSecondary,
+            opacity: themeName === t ? 0.6 : 1,
+          }}
+        >
+          {t.charAt(0).toUpperCase() + t.slice(1)} Theme
+        </button>
+      ))}
+      <br />
+      <br />
+      <br />
       <button style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleAboutClick}>
         {showAbout ? "Hide" : "Show"} About 1Fit4All
       </button>
@@ -164,7 +131,7 @@ const SettingsPage = () => {
 
 
       {showAbout && (
-        <div style={{ marginTop: '1rem', padding: '1rem', background: theme.secondary, color: theme.textPrimary, borderRadius: '4px' }}>
+        <div style={{ marginTop: '1rem', padding: '1rem', background: theme.secondary, color: theme.textSecondary, borderRadius: '20px' }}>
           <p>
             At Good Boy Inc., we’re more than just developers — we’re a team brought together by a shared mission: to help people feel stronger, happier, and healthier every single day.
           </p>
@@ -175,6 +142,12 @@ const SettingsPage = () => {
           </p>
         </div>
       )}
+      <br />
+      <button style={{
+        ...btnStyle,
+        background: theme.button,
+        color: theme.textSecondary
+      }} onClick={() => handleSignOut()}>Sign Out</button>
     </div>
   );
 };

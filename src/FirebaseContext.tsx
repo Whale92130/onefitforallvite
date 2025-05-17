@@ -1,85 +1,55 @@
-import { createContext, useEffect, useState } from "react";
-import {
-  getAuth,
-  User,
-  onAuthStateChanged,
-} from "firebase/auth";
-import app from "./firebase";
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  ReactNode,
+  FC,
+  useContext,
+} from "react";
+import { getAuth, User, onAuthStateChanged } from "firebase/auth";
+import { app } from "./firebase";
 
 const auth = getAuth(app);
 
-export const FirebaseContext = createContext<{
+interface FirebaseCtx {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-}>({
+  loading: boolean;
+}
+
+const FirebaseContext = createContext<FirebaseCtx>({
   user: null,
-  setUser: () => {},
+  loading: true,
 });
 
-type Props = { children: React.ReactNode };
-
-export const FirebaseProvider: React.FC<Props> = ({ children }) => {
-  const [initializing, setInitializing] = useState(true);
+export const FirebaseProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Setting up auth state listener");
     const unsubscribe = onAuthStateChanged(
       auth,
-      (user) => {
-        console.log("Auth state changed", user ? "user exists" : "no user");
-        setUser(user);
-        setInitializing(false);
-
-        // If user exists but no token, try to get it
-
+      (u) => {
+        setUser(u);
+        setLoading(false);
       },
-      (error) => {
-        console.error("Auth state change error:", error);
-        setAuthError(error.message);
-        setInitializing(false);
+      (err) => {
+        console.error("Auth state change error:", err);
+        setLoading(false);
       }
     );
-
-    // Force initializing to false after 3 seconds as a failsafe
-    const timeout = setTimeout(() => {
-      if (initializing) {
-        console.log("Auth initialization timeout - forcing completion");
-        setInitializing(false);
-      }
-    }, 3000);
-
-    return () => {
-      unsubscribe();
-      clearTimeout(timeout);
-    };
+    return unsubscribe;
   }, []);
 
-  if (initializing) {
-    return (
-      <div>
-        <h1>Loading</h1>
-      </div>
-    );
-  }
-
-  if (authError) {
-    return (
-      <div style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <p style={{ color: "red" }}>Authentication Error: {authError}</p>
-        <p>Please restart the app and try again.</p>
-      </div>
-    );
+  // While Firebase is initializing, show a loader
+  if (loading) {
+    return <div style={{ padding: 20 }}>Loading authentication…</div>;
   }
 
   return (
-    <FirebaseContext.Provider
-      value={{ user, setUser }}
-    >
+    <FirebaseContext.Provider value={{ user, loading }}>
       {children}
     </FirebaseContext.Provider>
   );
 };
+
+export const useFirebaseContext = () => useContext(FirebaseContext);

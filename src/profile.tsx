@@ -12,10 +12,29 @@ import settingsIconSrc from '/home/user/onefitforallvite/src/assets/images/setti
 import { auth } from './firebase';
 import { getAuth, updateProfile } from 'firebase/auth';
 import { useTheme } from './ThemeContext';
+import { ThemeName } from './colors';
 
 
 export default function ProfileScreen() {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
+  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
+  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';
+  const iconFilterByTheme: Record<ThemeName, string> = {
+    light: darkTint,
+    dark: lightTint,
+    goodBoy: lightTint,  // white textPrimary  
+    CCA: lightTint,  // white textPrimary
+    spring: darkTint,   // black textPrimary
+    summer: darkTint,   // black textPrimary
+    winter: darkTint,   // black textPrimary
+    autumn: lightTint,  // white textPrimary
+    mrhare: darkTint,   // black textPrimary
+    nether: lightTint,  // white textPrimary
+    midnight: lightTint,  // white textPrimary
+    america: darkTint,   // black textPrimary
+    enderpearl: lightTint,
+  };
+  const iconFilter = iconFilterByTheme[themeName] || darkTint;
   // --- Styles Definition ---
   const styles: { [key: string]: CSSProperties } = {
     container: {
@@ -44,7 +63,7 @@ export default function ProfileScreen() {
       width: 30,
       height: 30,
       cursor: 'pointer',
-      // tintColor: Colors.textPrimary, // OMITTED - For SVGs, use 'fill'
+      filter: iconFilter,
     },
     profilePicContainer: {
       marginBottom: 20,
@@ -78,7 +97,7 @@ export default function ProfileScreen() {
     editIcon: {
       width: 18,
       height: 18,
-      filter: 'invert(100%) brightness(200%)',
+      filter: 'invert(100%) brightness(2000%) contrast(90%)',
     },
     usernameContainer: {
       alignItems: 'center',
@@ -129,7 +148,7 @@ export default function ProfileScreen() {
     editUsernameIcon: {
       width: 24,
       height: 24,
-      // tintColor: Colors.textPrimary, // OMITTED
+      filter: iconFilter,
     },
     // Simple text buttons for save/cancel
     actionButtonText: {

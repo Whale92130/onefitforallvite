@@ -15,10 +15,18 @@ const NewWorkout: FC = () => {
   const addExercise = () => setExerciseCount(c => c + 1);
   const deleteExercise = () => setExerciseCount(c => Math.max(1, c - 1));
   const startWorkout = () => setIsWorkoutVisible(true);
-
+  const {theme } = useTheme();
   return (
     <div>
-      <button onClick={startWorkout}>New Workout</button>
+      <button onClick={startWorkout}
+      style={{
+        backgroundColor: theme.primary,
+        color: theme.textPrimary,
+        padding: '10px 20px',
+        borderRadius: '5px',
+        border: 'none',
+        cursor: 'pointer',
+      }}>New Workout</button>
       {isWorkoutVisible && (
         <>
           {[...Array(exerciseCount)].map((_, i) => (

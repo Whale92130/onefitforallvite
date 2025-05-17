@@ -5,7 +5,7 @@ import  { CSSProperties, useEffect, useState } from 'react'; // Import CSSProper
 // Adjust these paths based on your actual project structure.
 import logoImage from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg';
 import fireImage from '/home/user/onefitforallvite/src/assets/images/fire.png';
-
+import {ThemeName} from './colors';
 // --- Colors Import ---
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors properties with actual color values.
@@ -20,6 +20,24 @@ import { getFirestore, doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'f
 
 const TopBar = () => {
   const { theme, themeName } = useTheme();
+  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
+  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';
+  const iconFilterByTheme: Record<ThemeName, string> = {
+    light: darkTint,
+    dark: lightTint,
+    goodBoy: lightTint,  // white textPrimary  
+    CCA: lightTint,  // white textPrimary
+    spring: darkTint,   // black textPrimary
+    summer: darkTint,   // black textPrimary
+    winter: darkTint,   // black textPrimary
+    autumn: lightTint,  // white textPrimary
+    mrhare: darkTint,   // black textPrimary
+    nether: lightTint,  // white textPrimary
+    midnight: lightTint,  // white textPrimary
+    america: darkTint,   // black textPrimary
+    enderpearl: lightTint,
+  };
+  const iconFilter = iconFilterByTheme[themeName] || darkTint;
 // --- Styles Definition ---
 const styles: { [key: string]: CSSProperties } = {
   // Replaces SafeAreaView - mainly for background color and potential top padding
@@ -43,6 +61,7 @@ const styles: { [key: string]: CSSProperties } = {
   logo: {
     width: 50,
     height: 50,
+    marginLeft: 10,
     borderRadius: '50%', // Use '50%' for a perfect circle
     // backgroundColor: Colors.background, // Usually not needed for <img> unless it's a placeholder
     objectFit: 'cover', // Control how the image fits
@@ -63,9 +82,7 @@ const styles: { [key: string]: CSSProperties } = {
     height: 20,
     marginRight: 5,
     display: 'block',
-    filter: themeName === 'light'
-        ? 'grayscale(100%) brightness(40%) contrast(100%)' // Tint dark on light theme
-        : 'invert(100%) brightness(2000%) contrast(90%)',
+    filter: iconFilter,
   },
   streakText: {
     fontSize: 16,

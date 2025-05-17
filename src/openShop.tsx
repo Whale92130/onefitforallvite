@@ -1,6 +1,6 @@
 import { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
-
+import { ThemeName } from './colors'; // Import ThemeName if you need it for type checking}
 // --- Asset Import ---
 // Use standard ES module import for assets in Vite.
 // Adjust the path based on your actual project structure.
@@ -9,12 +9,29 @@ import { useTheme } from './ThemeContext';
 // --- Colors Import ---
 // Assuming you have a colors definition file (e.g., src/styles/colors.ts)
 // If not, replace Colors properties with actual color values.
-//import { Colors } from './colors'; // Adjust path as needed
-
+//import { Colors } from './colors'; // Adjust path as neede
 
 // --- OpenShopScreen Component ---
 export default function OpenShopScreen() {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
+  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
+  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';
+  const iconFilterByTheme: Record<ThemeName, string> = {
+    light: darkTint,
+    dark: lightTint,
+    goodBoy: lightTint,  // white textPrimary  
+    CCA: lightTint,  // white textPrimary
+    spring: darkTint,   // black textPrimary
+    summer: darkTint,   // black textPrimary
+    winter: darkTint,   // black textPrimary
+    autumn: lightTint,  // white textPrimary
+    mrhare: darkTint,   // black textPrimary
+    nether: lightTint,  // white textPrimary
+    midnight: lightTint,  // white textPrimary
+    america: darkTint,   // black textPrimary
+    enderpearl: lightTint,
+  };
+  const iconFilter = iconFilterByTheme[themeName] || darkTint;
   // --- Styles Definition ---
   const styles: { [key: string]: CSSProperties } = {
     container: {
@@ -47,6 +64,7 @@ export default function OpenShopScreen() {
       marginBottom: 10, // Increased margin
       objectFit: 'contain', // Ensure image scales nicely
       display: 'block',
+      filter: iconFilter,
       // tintColor: Colors.textPrimary, // OMITTED - tintColor has no direct CSS equivalent for <img>
       // If tinting is essential, use SVG icons or CSS filters.
     },

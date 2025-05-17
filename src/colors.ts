@@ -114,7 +114,7 @@ export const themes = {
     primary: "#e30505",
     secondary: "#0808d4",
     background: "#ffffff",
-    textPrimary: "#000000",
+    textPrimary: "#0000000",
     textSecondary: "#ffffff",
     button: "#0808d4",
     buttonHighlight: "#ed3934",

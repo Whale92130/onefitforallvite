@@ -2,11 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import styles from './OpenCrateScreen.module.css'; // Import CSS Module
 
+import { useTheme } from './ThemeContext'; // Import useTheme hook
 // Define colors locally or import from a shared module
-const Colors = {
-  primary: '#f0f0f0', // Example primary background color
-  // Add other colors if needed
-};
 
 interface CrateResult {
   theme: string;
@@ -67,6 +64,8 @@ const OpenCrateScreen: React.FC = () => {
     if (resultToDisplay) {
       setLootCrateResult(resultToDisplay); // Show the result
     }
+
+    // Unlock the theme after the animation and result is ready to display
   };
 
   // --- (Keep utility functions getRarityColor, getThemeBackgroundColor unchanged) ---
@@ -99,14 +98,14 @@ const OpenCrateScreen: React.FC = () => {
     }
   };
   // --- (End of utility functions) ---
-
+  const {theme} = useTheme();
   return (
-    <div className={styles.container} style={{ backgroundColor: Colors.primary }}>
+    <div className={styles.container} style={{ backgroundColor: theme.background}}>
       <div className={styles.contentContainer}>
         {/* Show result only if not animating AND result exists */}
         {!isAnimating && lootCrateResult ? (
           <>
-            <p className={styles.themeText}>You got: {lootCrateResult.theme}</p>
+            <p className={styles.themeText} style={{ color: theme.textPrimary}}>You got: {lootCrateResult.theme}</p>
             <div
               className={styles.square}
               style={{ backgroundColor: getThemeBackgroundColor(lootCrateResult.theme) }}
