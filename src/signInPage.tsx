@@ -116,7 +116,7 @@ const SignInPage: React.FC = () => {
       
 
         <div style={styles.form}>
-        <label style={styles.label}>email</label>
+        <label style={styles.label}>Email</label>
         <input value={email} onChange={(e)=>{setEmail(e.target.value)}} style={styles.input}/><br />
         <label style={styles.label}>Password</label>
         <input value={password} onChange={(e)=>{setPassword(e.target.value)}} type="password" style={styles.input}/><br />
@@ -127,8 +127,7 @@ const SignInPage: React.FC = () => {
           <button onClick={signIn} style={styles.button}>Sign In</button>
         </div>
         </div>
-        <br></br>
-        OR
+        <label style={styles.label}>OR</label>
         <br></br>
         <button onClick={signInWithGoogle1} style={styles.button}>Sign in with Google</button>
     </div>

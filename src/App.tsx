@@ -1,5 +1,5 @@
-import React, { CSSProperties, useEffect } from 'react';
-import { Routes, Route, Link, useLocation, useNavigate, BrowserRouter } from 'react-router-dom';
+import { CSSProperties, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, BrowserRouter } from 'react-router-dom';
 
 // --- Import Converted Page/Layout Components ---
 import YourNextWorkout from './yourNextWorkout';
@@ -16,7 +16,7 @@ import SettingsPage from './settings';
 import { useTheme } from './ThemeContext'; // Correct: Import useTheme
 import { ThemeProvider } from './ThemeContext'; // <<<--- ADD THIS: To provide the theme context
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+// import { getAuth } from 'firebase/auth';
 import { useFirebaseContext } from './FirebaseContext';
 // --- Colors Import (adjust path as needed) ---
 import { FirebaseProvider } from './FirebaseContext';
@@ -140,7 +140,7 @@ const HomeContent = () => {
 const ProfileContent = () => {
   const { theme } = useTheme();
   const styles = getStyles(theme); // Get styles with current theme
-  const navigate = useNavigate(); // useNavigate should be inside component
+  //const navigate = useNavigate(); // useNavigate should be inside component
   return (
     <div style={styles.profilePageLayout}>
       <ProfileScreen />
@@ -172,12 +172,12 @@ const AppWrapper = () => {
 function App() { // This is now the component that uses the theme
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme, themeName } = useTheme(); // Call useTheme() here
+  const { theme} = useTheme(); // Call useTheme() here
   const styles = getStyles(theme); // Get styles with the current theme
   const { user, loading: authLoading } = useFirebaseContext();
   const { setTheme } = useTheme();
   const db = getFirestore();
-  const auth = getAuth();
+  //const auth = getAuth();
 
   useEffect(() => {
     // once auth is ready and we have a user, fetch their theme

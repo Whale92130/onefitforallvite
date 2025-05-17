@@ -1,94 +1,108 @@
 import React, { CSSProperties } from 'react';
-import { useTheme } from './ThemeContext'; // Correct: Import useTheme
-import { ThemeName } from './colors'; // Import ThemeName if you need it for type checking
+import { useTheme } from './ThemeContext';
+import { ThemeName } from './colors';
+import { getAuth } from 'firebase/auth';
+import defaultAvatar from "/home/user/onefitforallvite/src/assets/navbar_icons/default_avatar.png"; // Make sure this path is correct
 
 // --- Type Definitions ---
 export type IconName = 'home' | 'newWorkout' | 'profile';
 
-// Interface for icon configuration
 type IconConfig = {
   name: IconName;
   source: string;
 };
 
-// Props for the Navbar component
 export type NavbarProps = {
   activeIcon: IconName;
   onIconPress: (icon: IconName) => void;
 };
 
-// --- Icon Data ---
-const ICONS: IconConfig[] = [
-  {
-    name: 'home',
-    source: "/navbar_icons/home_icon.png",
-  },
-  {
-    name: 'newWorkout',
-    source: "/navbar_icons/start_icon.png",
-  },
-  {
-    name: 'profile',
-    source: "/icons/logo.jpeg",
-  },
-];
-
 // --- Navbar Component ---
 const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
-  // 1. Call useTheme() INSIDE the component
-  // Destructure themeName as well to check which theme is active
   const { theme, themeName } = useTheme();
-  const darkTint  = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
-  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';      // for “light” (white‐ish) text
+
+  // --- Icon Data (MOVED INSIDE) ---
+  // This needs to be inside the component to react to auth state changes
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const profilePicSrc = user?.photoURL ?? defaultAvatar;
+
+  const ICONS: IconConfig[] = [
+    { name: "home", source: "/navbar_icons/home_icon.png" },
+    { name: "newWorkout", source: "/navbar_icons/start_icon.png" },
+    { name: "profile", source: profilePicSrc },
+  ];
+  // --- End Icon Data ---
+
+
+  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';
+  const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';
   let activeTint: string;
-  
+  let navbarProfileBorderColor: string;
+
+  // --- Active Tint Logic (simplified for brevity, keep your full logic) ---
   if (themeName === 'light') {
     activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+    navbarProfileBorderColor = '#109ce6';
   } else if (themeName === 'dark') {
     activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
-  }else if (themeName === 'goodBoy') {
+    navbarProfileBorderColor = '#109ce6';
+  } else if (themeName === 'goodBoy') {
     activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
-  }else if (themeName === 'CCA') {
+    navbarProfileBorderColor = '#109ce6';
+  } else if (themeName === 'CCA') {
     activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(105%)';
-  }else if (themeName === 'spring') {
+    navbarProfileBorderColor = '#ec1600';
+  } else if (themeName === 'spring') {
     activeTint = 'invert(50%) sepia(80%) saturate(8000%) hue-rotate(-65deg) brightness(100%) contrast(120%)';
-  }else if (themeName === 'summer') {
+    navbarProfileBorderColor = '#fb10d6';
+  } else if (themeName === 'summer') {
     activeTint = 'invert(45%) sepia(60%) saturate(5000%) hue-rotate(170deg) brightness(155%) contrast(90%)';
-  }else if (themeName === 'winter') {
+    navbarProfileBorderColor = '#1be9f5';
+  } else if (themeName === 'winter') {
     activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
-  }else if (themeName === 'autumn') {
+    navbarProfileBorderColor = '#109ce6';
+  } else if (themeName === 'autumn') {
     activeTint = 'invert(20%) sepia(95%) saturate(2000%) hue-rotate(-5deg) brightness(85%) contrast(90%)';
-  }else if (themeName === 'mrhare') {
+    navbarProfileBorderColor = '#9c3721';
+  } else if (themeName === 'mrhare') {
     activeTint = 'invert(96%) sepia(15%) saturate(5000%) hue-rotate(5deg) brightness(200%) contrast(70%)';
-  }else if (themeName === 'nether') {
+    navbarProfileBorderColor = '#dad82a';
+  } else if (themeName === 'nether') {
     activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(105%)';
-  }else if (themeName === 'midnight') {
+    navbarProfileBorderColor = '#ec1600';
+  } else if (themeName === 'midnight') {
     activeTint = 'invert(45%) sepia(60%) saturate(2500%) hue-rotate(170deg) brightness(25%) contrast(50%)';
-  }else if (themeName === 'america') {
+    navbarProfileBorderColor = '#3f525a';
+  } else if (themeName === 'america') {
     activeTint = 'invert(26%) sepia(100%) saturate(6000%) hue-rotate(0deg) brightness(105%) contrast(165%)';
-  }else if (themeName === 'enderpearl') {
+    navbarProfileBorderColor = '#ec1600';
+  } else if (themeName === 'enderpearl') {
     activeTint = 'invert(15%) sepia(60%) saturate(8000%) hue-rotate(270deg) brightness(90%) contrast(105%)';
+    navbarProfileBorderColor = '#6b0bd1';
   } else {
     activeTint = 'invert(45%) sepia(60%) saturate(1500%) hue-rotate(170deg) brightness(95%) contrast(90%)';
+    navbarProfileBorderColor = '#109ce6'; // Default
   }
-  // 2) Explicit map of *every* themeName → the filter you want:
+
+
   const iconFilterByTheme: Record<ThemeName, string> = {
-    light:   darkTint,
-    dark:    lightTint,
-    goodBoy: lightTint,  // white textPrimary  
-    CCA:     lightTint,  // white textPrimary
-    spring:  darkTint,   // black textPrimary
-    summer:  darkTint,   // black textPrimary
-    winter:  darkTint,   // black textPrimary
-    autumn:  lightTint,  // white textPrimary
-    mrhare:  darkTint,   // black textPrimary
-    nether:  lightTint,  // white textPrimary
-    midnight:lightTint,  // white textPrimary
-    america: darkTint,   // black textPrimary
+    light: darkTint,
+    dark: lightTint,
+    goodBoy: lightTint,
+    CCA: lightTint,
+    spring: darkTint,
+    summer: darkTint,
+    winter: darkTint,
+    autumn: lightTint,
+    mrhare: darkTint,
+    nether: lightTint,
+    midnight: lightTint,
+    america: darkTint,
     enderpearl: lightTint,
   };
   const iconFilter = iconFilterByTheme[themeName] || darkTint;
-  // 2. Define styles INSIDE the component or make it a function
+
   const styles: { [key: string]: CSSProperties } = {
     navbar: {
       display: 'flex',
@@ -122,63 +136,77 @@ const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
       outline: 'none',
       WebkitTapHighlightColor: 'transparent',
     },
-    iconImage: {
+    iconImage: { // Base style for ALL icons
       width: 28,
       height: 28,
       display: 'block',
-      objectFit: 'contain',
+      objectFit: 'contain', // Default objectFit
     },
-    profileIcon: {
-      width: 32,
+    profileIcon: { // Specific styles for profile icon (both active and inactive)
+      width: 32, // Slightly larger
       height: 32,
       borderRadius: '50%',
-      border: `1px solid ${theme.textPrimary}`,
-      objectFit: 'cover',
-     
+      border: `1px solid ${theme.textPrimary}`, // Default border for inactive profile
+      objectFit: 'cover', // Important for profile pics
     },
-    activeIconStyle: {
-      // Your existing active style, or adjust as needed
-      // This filter is a blueish tint, you might want to tie it to theme.primary or theme.button
+    activeProfileBorderStyle: { // NEW: Style for the ACTIVE profile icon's BORDER
+      border: `4px solid ${theme.button || theme.primary}`, // Use theme.button or theme.primary for active border
+      borderColor: navbarProfileBorderColor,
+      // You could add a subtle box-shadow too if you like:
+      // boxShadow: `0 0 5px ${theme.button || theme.primary}`,
+    },
+    activeIconStyle: { // For NON-PROFILE active icons (applies filter)
       filter: activeTint,
-
-
       opacity: 1,
     },
-    // Conditionally set the inactive icon style
-    inactiveIconStyle: {
+    inactiveIconStyle: { // For NON-PROFILE inactive icons (applies filter)
       filter: iconFilter,
-      // Explanation of filter values:
-      // grayscale(100%): Makes the icon monochrome.
-      // brightness(40%): Makes it darker (values < 100%). For light theme.
-      // brightness(150%): Makes it lighter (values > 100%). For dark theme.
-      // contrast(100%): Keeps normal contrast, adjust if needed.
+      // opacity: 0.7, // Optional: make inactive icons slightly transparent
     },
   };
 
   return (
     <nav style={styles.navbar}>
-      {ICONS.map((icon) => (
-        <button
-          key={icon.name}
-          style={styles.iconContainer}
-          onClick={() => onIconPress(icon.name)}
-          type="button"
-          aria-label={`Navigate to ${icon.name}`}
-          aria-current={activeIcon === icon.name ? 'page' : undefined}
-        >
-          <img
-            src={icon.source}
-            alt={`${icon.name} icon`}
-            style={{
-              ...styles.iconImage,
-              ...(icon.name === 'profile' ? styles.profileIcon : {}),
-              ...(activeIcon === icon.name
-                ? styles.activeIconStyle
-                : styles.inactiveIconStyle), // This will now apply the conditional style
-            }}
-          />
-        </button>
-      ))}
+      {ICONS.map((icon) => {
+        const isActive = activeIcon === icon.name;
+        const isProfile = icon.name === 'profile';
+
+        let iconSpecificStyles: CSSProperties = {};
+
+        if (isProfile) {
+          iconSpecificStyles = { ...styles.profileIcon }; // Base profile styles
+          if (isActive) {
+            iconSpecificStyles = { ...iconSpecificStyles, ...styles.activeProfileBorderStyle };
+          }
+        } else {
+          // For non-profile icons (home, newWorkout)
+          if (isActive) {
+            iconSpecificStyles = { ...styles.activeIconStyle };
+          } else {
+            iconSpecificStyles = { ...styles.inactiveIconStyle };
+          }
+        }
+
+        return (
+          <button
+            key={icon.name}
+            style={styles.iconContainer}
+            onClick={() => onIconPress(icon.name)}
+            type="button"
+            aria-label={`Navigate to ${icon.name}`}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            <img
+              src={icon.source}
+              alt={`${icon.name} icon`}
+              style={{
+                ...styles.iconImage,     // Base image styles for all
+                ...iconSpecificStyles,    // Apply calculated specific styles
+              }}
+            />
+          </button>
+        );
+      })}
     </nav>
   );
 };

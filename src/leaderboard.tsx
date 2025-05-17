@@ -17,10 +17,10 @@ interface LeaderboardItemProps {
 
 
 // --- Leaderboard Component Props Interface ---
-interface LeaderboardProps {
-  // Allow leaderboardData to be potentially undefined, handle default later
-  leaderboardData?: { name: string; workouts: number; }[];
-}
+// interface LeaderboardProps {
+//   // Allow leaderboardData to be potentially undefined, handle default later
+//   leaderboardData?: { name: string; workouts: number; }[];
+// }
 
 // Default data if none is provided
 

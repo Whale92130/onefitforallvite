@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'; // For web navigation
 
 // --- Asset Imports (adjust paths as needed) ---
 import defaultAvatar from '/home/user/onefitforallvite/src/assets/images/default_avatar.png';
-import editProfilePicIcon from '/home/user/onefitforallvite/src/assets/images/editProfilePic.png';
 import editUsernameIcon from '/home/user/onefitforallvite/src/assets/images/editUsername.png';
 import settingsIconSrc from '/home/user/onefitforallvite/src/assets/images/settings.png';
 
 // --- Colors Import (adjust path as needed) ---
 //import { Colors } from './colors'; // Make sure this path is correct
-import { auth } from './firebase';
 import { getAuth, updateProfile } from 'firebase/auth';
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage, auth } from "./firebase";
 import { useTheme } from './ThemeContext';
 import { ThemeName } from './colors';
 
@@ -185,24 +185,40 @@ export default function ProfileScreen() {
   // No explicit permission request needed for web file input
   // The useEffect for ImagePicker permissions is removed.
 
-  const handleImageSelected = (event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePicUri(reader.result as string);
-        // TODO: Implement logic to upload the selected image (file object) to your server/storage
-        console.log('Profile Picture Selected (Web):', file.name);
-        // window.alert('Profile Picture Updated (Web)'); // Or use a toast/modal
-      };
-      reader.readAsDataURL(file); // Creates a base64 URI for display
+
+  const handleImageSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !auth.currentUser) return;
+  
+    // 1️⃣ Create a unique path—for example: `profilePics/{uid}/{filename}`
+    const path = `profilePics/${auth.currentUser.uid}/${file.name}`;
+    const imgRef = storageRef(storage, path);
+  
+    try {
+      // 2️⃣ Upload the file
+      await uploadBytes(imgRef, file);
+  
+      // 3️⃣ Get its publicly accessible URL
+      const url = await getDownloadURL(imgRef);
+  
+      // 4️⃣ Save that URL in the user’s auth profile
+      await updateProfile(auth.currentUser, { photoURL: url });
+  
+      // 5️⃣ Update local state so the UI refreshes immediately
+      setProfilePicUri(url);
+    } catch (err) {
+      console.error("Upload failed:", err);
     }
   };
 
-  const handleEditPicture = () => {
-    // Trigger click on the hidden file input
-    fileInputRef.current?.click();
-  };
+  useEffect(() => {
+    const u = auth.currentUser;
+    if (u?.photoURL) {
+      setProfilePicUri(u.photoURL);
+    } else {
+      setProfilePicUri(defaultAvatar);
+    }
+  }, [auth.currentUser]);
 
   const handleEditUsername = () => {
     setIsEditingUsername(true);
@@ -252,9 +268,6 @@ export default function ProfileScreen() {
           alt="Profile"
           style={styles.profilePic}
         />
-        <button style={styles.editPicButton} onClick={handleEditPicture} aria-label="Edit profile picture">
-          <img src={editProfilePicIcon} alt="Edit" style={styles.editIcon} />
-        </button>
       </div>
 
       {/* Username Section */}

@@ -1,6 +1,6 @@
-import React, { useState, FC, CSSProperties } from 'react';
+import { useState, FC, CSSProperties } from 'react';
 import { useTheme } from './ThemeContext';
-import Stopwatch from './stopwatch'; // Only keep if Stopwatch is actually used
+//import Stopwatch from './stopwatch'; // Only keep if Stopwatch is actually used
 
 interface SetItem {
   weight: string;

@@ -96,7 +96,7 @@ const styles: { [key: string]: CSSProperties } = {
   const user = auth.currentUser;
 
   const [streakCount, setStreakCount] = useState(0);
-  const [lastLoginAt, setLastLoginAt] = useState<Timestamp | null>(null);
+  const [, setLastLoginAt] = useState<Timestamp | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -183,7 +183,7 @@ const styles: { [key: string]: CSSProperties } = {
           style={styles.logo}
         />
         
-        <h3>Hello {user?.displayName ?? user?.email ?? "User"}</h3>
+        <h3 style={{ color: theme.textPrimary || '#333333' }}>Hello, {user?.displayName ?? user?.email ?? "go to Profile then Settings to Sign In"}</h3>
 
         <div style={styles.streakContainer}>
           <img
