@@ -1,171 +1,191 @@
-import React, { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
-
-// Assuming you have a colors definition file (e.g., src/styles/colors.ts)
-// If not, replace Colors.primary etc. with actual color values.
-// Make sure the path is correct relative to this file.
-//import { Colors } from './colors'; // Adjust the path as needed
+import React, { CSSProperties, useEffect, useState } from 'react';
 import { useTheme } from './ThemeContext';
-// Interface for the props of a single leaderboard row item
+import { getFirestore, collection, getDocs, query, orderBy } from 'firebase/firestore';
+
 interface LeaderboardItemProps {
   name: string;
   workouts: number;
-  rank: number;
 }
-//do this
 
-// --- Leaderboard Item Component ---
+interface UserStreakData {
+  id: string;
+  name: string;
+  streakCount: number;
+}
 
-
-// --- Leaderboard Component Props Interface ---
-// interface LeaderboardProps {
-//   // Allow leaderboardData to be potentially undefined, handle default later
-//   leaderboardData?: { name: string; workouts: number; }[];
-// }
-
-// Default data if none is provided
-
-
-// --- Main Leaderboard Component ---
 export default function Leaderboard() {
-  const { theme} = useTheme();
-  const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ name, workouts, rank }) => (
-    // Use div for the row container
-    <div style={styles.leaderboardItem}>
-      {/* Use span for text elements within the row */}
-      <span style={styles.rank}>{rank}</span>
-      <span style={styles.name}>{name}</span>
-      <span style={styles.workouts}>{workouts}</span>
-    </div>
-  );
+  const { theme } = useTheme();
+  const [leaderboardData, setLeaderboardData] = useState<UserStreakData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const db = getFirestore();
+
+  useEffect(() => {
+    // ... (fetchLeaderboardData remains the same)
+    const fetchLeaderboardData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const usersCollectionRef = collection(db, 'users');
+        const q = query(usersCollectionRef, orderBy('streakCount', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const fetchedData: UserStreakData[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const streakCount = typeof data.streakCount === 'number' ? data.streakCount : 0;
+          fetchedData.push({
+            id: doc.id,
+            name: data.displayName || data.email || 'Anonymous User',
+            streakCount: streakCount,
+          });
+        });
+        setLeaderboardData(fetchedData);
+      } catch (err) {
+        console.error("Error fetching leaderboard data:", err);
+        setError("Failed to load leaderboard data. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchLeaderboardData();
+  }, [db]);
+
+  const LeaderboardItem: React.FC<LeaderboardItemProps> = ({ name, workouts }) => {
+    // JavaScript truncation for a hard limit (optional, CSS can handle it too)
+    const MAX_NAME_LENGTH = 25; // Increased a bit, CSS will be primary truncator
+    const displayName = name.length > MAX_NAME_LENGTH
+      ? `${name.substring(0, MAX_NAME_LENGTH)}...`
+      : name;
+
+    return (
+      <div style={styles.leaderboardItem}>
+        <span style={styles.name} title={name}>
+          {displayName} {/* Or just {name} and let CSS handle all truncation */}
+        </span>
+        <span style={styles.workouts}>{workouts}</span>
+      </div>
+    );
+  };
+
   const styles: { [key: string]: CSSProperties } = {
     container: {
       height: '100%',
-      display: 'flex', // Needed for flex properties below
+      display: 'flex',
       flexDirection: 'column',
       backgroundColor: theme.primary,
       borderRadius: 10,
       padding: 10,
       boxSizing: 'border-box',
       maxHeight: "100%",
-      maxWidth: "50vw"
+      maxWidth: "50vw", // Re-evaluate this if content doesn't fit
+      // minWidth: "320px", // Consider a minimum pixel width for the whole component
     },
     title: {
       fontSize: 18,
       fontWeight: 'bold',
-      marginBottom: 15, // Adjusted margin
+      marginBottom: 15,
       textAlign: 'center',
       color: theme.textPrimary,
-      flexShrink: 0, // Prevent title from shrinking
+      flexShrink: 0,
     },
     header: {
-      display: 'flex', // Use flexbox for horizontal layout
+      display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center', // Align header text vertically
+      // justifyContent: 'space-between', // We'll let flex properties on children manage space
+      alignItems: 'center',
       paddingBottom: 10,
-      // Combine border properties into one shorthand
-      borderBottom: `1px solid ${theme.secondary || '#cccccc'}`, // Added fallback color
-      marginBottom: 5, // Space between header and first item
-      flexShrink: 0, // Prevent header from shrinking
-      paddingLeft: 5, // Add some padding to align with items below
+      borderBottom: `1px solid ${theme.secondary || '#cccccc'}`,
+      marginBottom: 5,
+      flexShrink: 0,
+      paddingLeft: 5,
       paddingRight: 5,
     },
-    // Base style for header text, specific alignment/width applied by merging
     headerTextBase: {
       fontWeight: 'bold',
       fontSize: '10pt',
       color: theme.textPrimary,
     },
-    // Scrollable container for the list items
     scrollableContent: {
-      flex: 1, // Allows this div to take up remaining vertical space
-      overflowY: 'auto', // Enable vertical scrolling *only* when needed
-      overflowX: 'hidden', // Hide horizontal scrollbar
+      flex: 1,
+      overflowY: 'auto',
+      overflowX: 'hidden', // Keep this hidden for now unless you want horizontal scroll
     },
     leaderboardItem: {
       display: 'flex',
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center', // Vertically align items in the row
+      alignItems: 'center', // Vertically align items
       paddingTop: 10,
       paddingBottom: 10,
-      paddingLeft: 5, // Add consistent padding with header
+      paddingLeft: 5,
       paddingRight: 5,
-      // Use border shorthand, added fallback color
-      borderBottom: `1px solid ${theme.textPrimary || '#eeeeee'}`, // Assuming a lighter border color for items
-      // Remove border from the very last item (cannot use :last-child with inline styles easily)
-      // This would require JS logic if strictly needed with inline styles.
-    },
-    rank: {
-      //width: 50, // Adjusted width slightly
-      textAlign: 'left',
-      color: theme.textPrimary,
-      flexShrink: 0, // Prevent shrinking
+      borderBottom: `1px solid ${theme.textPrimary || '#eeeeee'}`,
+      minHeight: '40px',
     },
     name: {
-      flex: 1, // Allow name column to take available space
-      textAlign: 'left', // Changed to left align for readability
+      flexGrow: 1,         // Allow name to grow and take available space
+      flexShrink: 1,       // Allow name to shrink if necessary
+      flexBasis: '0%',     // Start with no intrinsic width, will grow from here.
+                           // This often helps make flex-shrink behave more predictably.
+      minWidth: 0,         //<<<< Allow it to shrink down to almost nothing before CSS ellipsis.
+                           // If you want some absolute minimum text visible, set a small value like '50px'
+      textAlign: 'left',
       color: theme.textPrimary,
-      paddingLeft: 10, // Add spacing between rank and name
-      paddingRight: 10, // Add spacing between name and workouts
-      // Add text overflow handling if names can be long
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
+      paddingRight: 10,
+      whiteSpace: 'nowrap',   // CRUCIAL for ellipsis
+      overflow: 'hidden',     // CRUCIAL for ellipsis
+      textOverflow: 'ellipsis', // This will now be the primary truncation method
+      fontSize: '10pt',
     },
     workouts: {
-      width: 50,
+      flexGrow: 0,          // Don't grow
+      flexShrink: 0,        // Don't shrink (preserve its width)
+      flexBasis: 'auto',    // Size based on content or minWidth
+      minWidth: '50px',     // Ensure streak has at least this much space (e.g., for "999")
       textAlign: 'right',
       color: theme.textPrimary,
-      flexShrink: 0, // Prevent shrinking
+      fontSize: '10pt',
+      paddingLeft: '5px',   // Add a little space so it doesn't touch the name if name is long
     },
-    noDataText: {
+    messageText: {
       textAlign: 'center',
       marginTop: 20,
-      color: theme.textSecondary || '#666666', // Use secondary color, add fallback
+      color: theme.textSecondary || '#666666',
     }
   };
-  const leaderboardData = [
-    { name: 'Joe Shmoe', workouts: Math.random() * 10 + 15 },
-    { name: 'Noah Sacks', workouts: 12 },
-    { name: 'Alexander Sementchenko', workouts: 11 },
-    { name: 'Peter Jones', workouts: 10 },
-    { name: 'Alice Brown', workouts: 9 },
-    { name: 'Bob White', workouts: 8 },
-    { name: "Jackson Szekeres", workouts: 14 },
-    { name: "Tom Petty", workouts: 15 },
-    { name: "Lin", workouts: -999 }
-  ];
+
+  // Apply styles to header children explicitly
+
+
+
+  if (isLoading) {
+    return <div style={styles.container}><p style={styles.messageText}>Loading leaderboard...</p></div>;
+  }
+  if (error) {
+    return <div style={styles.container}><p style={styles.messageText}>{error}</p></div>;
+  }
 
   return (
-    // Main container div
     <div style={styles.container}>
-      {/* Title heading */}
       <h2 style={styles.title}>Leaderboard</h2>
-
-      {/* Header row div */}
+      {/* Apply specific flex properties to header children if not inheriting perfectly */}
       <div style={styles.header}>
-        {/* Use span for header text elements */}
-        {/* Merge styles using object spread */}
-        <span style={{ ...styles.headerTextBase, ...styles.rank }}>Rank</span>
-        <span style={{ ...styles.headerTextBase, ...styles.name }}>Name</span>
-        <span style={{ ...styles.headerTextBase, ...styles.workouts }}>Workouts</span>
+      <span style={{...styles.headerTextBase, ...styles.name, textAlign: 'left'}}>Name</span>
+        <span style={{...styles.headerTextBase, ...styles.workouts, textAlign: 'right'}}>Streak</span>
       </div>
-
-      {/* Scrollable area div */}
       <div style={styles.scrollableContent}>
-        {/* Check if data is an array before mapping */}
-        {Array.isArray(leaderboardData) && leaderboardData.length > 0 ? (
-          leaderboardData.sort((a, b) => b.workouts - a.workouts).map((item, index) => (
-            <LeaderboardItem key={index} name={item.name} workouts={item.workouts} rank={index + 1} />
+        {leaderboardData.length > 0 ? (
+          leaderboardData.map((item) => (
+            <LeaderboardItem
+              key={item.id}
+              name={item.name}
+              workouts={item.streakCount}
+            />
           ))
         ) : (
-          // Fallback message if no data
-          <p style={styles.noDataText}>No leaderboard data available.</p>
+          <p style={styles.messageText}>No leaderboard data available.</p>
         )}
       </div>
     </div>
   );
 }
-
-// --- Styles Definition (Inline JavaScript Object) ---

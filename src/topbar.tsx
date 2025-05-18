@@ -1,153 +1,112 @@
-import  { CSSProperties, useEffect, useState } from 'react'; // Import CSSProperties for type checking styles
+import { CSSProperties, useEffect, useState } from 'react';
 
 // --- Asset Imports ---
-// Use standard ES module imports for assets in Vite.
-// Adjust these paths based on your actual project structure.
-import logoImage from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg';
-import fireImage from '/home/user/onefitforallvite/src/assets/images/fire.png';
-import {ThemeName} from './colors';
-// --- Colors Import ---
-// Assuming you have a colors definition file (e.g., src/styles/colors.ts)
-// If not, replace Colors properties with actual color values.
-//import { Colors } from './colors'; // Adjust path as needed
-import {useTheme} from './ThemeContext';
+import logoImage from '/home/user/onefitforallvite/src/assets/icons/logo.jpeg'; // Adjust path if needed
+import fireImage from '/home/user/onefitforallvite/src/assets/images/fire.png';  // Adjust path if needed
+import { ThemeName } from './colors'; // Assuming this is correctly pathed
+import { useTheme } from './ThemeContext';
 
-import { getAuth } from 'firebase/auth';
+import { getAuth, User } from 'firebase/auth'; // Import User type
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
-
 // --- TopBar Component ---
-
 const TopBar = () => {
   const { theme, themeName } = useTheme();
-  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';      // for “dark” (black‐ish) text
+  // ... (iconFilterByTheme and iconFilter logic remains the same)
+  const darkTint = 'grayscale(100%) brightness(40%) contrast(100%)';
   const lightTint = 'invert(100%) brightness(2000%) contrast(90%)';
   const iconFilterByTheme: Record<ThemeName, string> = {
-    light: darkTint,
-    dark: lightTint,
-    goodBoy: lightTint,  // white textPrimary  
-    CCA: lightTint,  // white textPrimary
-    spring: darkTint,   // black textPrimary
-    summer: darkTint,   // black textPrimary
-    winter: darkTint,   // black textPrimary
-    autumn: lightTint,  // white textPrimary
-    mrhare: darkTint,   // black textPrimary
-    nether: lightTint,  // white textPrimary
-    midnight: lightTint,  // white textPrimary
-    america: darkTint,   // black textPrimary
+    light: darkTint, dark: lightTint, goodBoy: lightTint, CCA: lightTint,
+    spring: darkTint, summer: darkTint, winter: darkTint, autumn: lightTint,
+    mrhare: darkTint, nether: lightTint, midnight: lightTint, america: darkTint,
     enderpearl: lightTint,
   };
   const iconFilter = iconFilterByTheme[themeName] || darkTint;
-// --- Styles Definition ---
-const styles: { [key: string]: CSSProperties } = {
-  // Replaces SafeAreaView - mainly for background color and potential top padding
-  topBarWrapper: {
-    backgroundColor: theme.background || '#ffffff', // Provide fallback color
-    height: "10%",
-    display: "block"
-    // Add padding top if you need to manually simulate safe area space
-    // paddingTop: 'env(safe-area-inset-top)', // This uses CSS env variables, support varies
-  },
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    // padding: 10,
-    width: '100%',
-    height: "100%",
-    boxSizing: 'border-box', // Include padding in the width calculation
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    marginLeft: 10,
-    borderRadius: '50%', // Use '50%' for a perfect circle
-    // backgroundColor: Colors.background, // Usually not needed for <img> unless it's a placeholder
-    objectFit: 'cover', // Control how the image fits
-    display: 'block', // Remove potential extra space below image
-  },
-  streakContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.primary || '#f0f0f0', // Provide fallback color
-    padding: 8,
-    borderRadius: 15,
-    marginRight: 10,
-  },
-  // Specific style for the fire icon image
-  fireIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 5,
-    display: 'block',
-    filter: iconFilter,
-  },
-  streakText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: theme.textPrimary || '#333333', // Provide fallback color
-    lineHeight: '1', // Adjust line height to prevent extra vertical space
-  },
-};
+
+  // --- Styles Definition ---
+  const styles: { [key: string]: CSSProperties } = {
+    topBarWrapper: {
+      backgroundColor: theme.background || '#ffffff',
+      height: "10%",
+      display: "block"
+    },
+    container: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+      height: "100%",
+      boxSizing: 'border-box',
+    },
+    logo: {
+      width: 50,
+      height: 50,
+      marginLeft: 10,
+      borderRadius: '50%',
+      objectFit: 'cover',
+      display: 'block',
+    },
+    greetingText: { // Added style for the greeting text
+      color: theme.textPrimary || '#333333',
+      flexGrow: 1, // Allow text to take available space
+      textAlign: 'center', // Center the greeting text
+      margin: '0 10px', // Add some margin
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
+    streakContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.primary || '#f0f0f0',
+      padding: 8,
+      borderRadius: 15,
+      marginRight: 10,
+    },
+    fireIcon: {
+      width: 20,
+      height: 20,
+      marginRight: 5,
+      display: 'block',
+      filter: iconFilter,
+    },
+    streakText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.textPrimary || '#333333',
+      lineHeight: '1',
+    },
+  };
+
   const auth = getAuth();
   const db = getFirestore();
-  const user = auth.currentUser;
+  const user = auth.currentUser; // This can be null initially or on auth state change
 
   const [streakCount, setStreakCount] = useState(0);
-  const [, setLastLoginAt] = useState<Timestamp | null>(null);
+  // The 'lastLoginAt' state is used internally for streak logic, not directly for display here.
+  const [, setLastLoginAtInternal] = useState<Timestamp | null>(null);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (user) {
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setStreakCount(data.streakCount || 0);
-          setLastLoginAt(data.lastLoginAt || null);
-
-          // Check and update streak on login
-          updateStreak(data.lastLoginAt, data.streakCount);
-        } else {
-          // If user document doesn't exist, create it with initial streak data
-          await setDoc(userRef, {
-            streakCount: 1,
-            lastLoginAt: serverTimestamp(),
-          });
-          setStreakCount(1);
-          // lastLoginAt will be updated on next fetch or by using the return value of setDoc if needed
-        }
-      }
-    };
-
-    fetchUserData();
-
-    // You might want to add an auth state change listener here
-    // to refetch data if the user logs in or out while the component is mounted.
-
-  }, [user]); // Re-run effect when user changes
-
-  const updateStreak = async (lastLoginTimestamp: Timestamp | null, currentStreak: number) => {
-    if (!user) return;
-
+  // This function updates streak based on last login.
+  // It now assumes `user` is valid when called (checked in useEffect).
+  const updateStreakLogic = async (
+    currentUser: User, // Pass current user explicitly
+    lastLoginTimestamp: Timestamp | null,
+    currentStreak: number
+  ) => {
     const now = Timestamp.now();
     let updatedStreak = currentStreak;
 
     if (lastLoginTimestamp) {
       const lastLoginDate = lastLoginTimestamp.toDate();
       const today = now.toDate();
-
-      // Check if last login was yesterday
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
 
       const isYesterday = lastLoginDate.getDate() === yesterday.getDate() &&
                           lastLoginDate.getMonth() === yesterday.getMonth() &&
                           lastLoginDate.getFullYear() === yesterday.getFullYear();
-
-      // Check if last login was today
       const isToday = lastLoginDate.getDate() === today.getDate() &&
                       lastLoginDate.getMonth() === today.getMonth() &&
                       lastLoginDate.getFullYear() === today.getFullYear();
@@ -155,24 +114,88 @@ const styles: { [key: string]: CSSProperties } = {
       if (isYesterday) {
         updatedStreak = currentStreak + 1;
       } else if (!isToday) {
-        // If not yesterday and not today, reset streak
-        updatedStreak = 1;
+        updatedStreak = 1; // Reset streak
       }
-      // If it was today, do nothing, streak continues
+      // If it was today, streak continues, no change to updatedStreak needed here
     } else {
-      // First login, start streak
-      updatedStreak = 1;
+      updatedStreak = 1; // First login or no previous record
     }
 
-    // Update in database
-    const userRef = doc(db, "users", user.uid);
+    // Update streak count and last login time in Firestore
+    const userRef = doc(db, "users", currentUser.uid);
     await setDoc(userRef, {
       streakCount: updatedStreak,
-      lastLoginAt: serverTimestamp(),
+      lastLoginAt: now, // Use `now` as it's the actual time of this update
     }, { merge: true });
 
-    setStreakCount(updatedStreak);
+    setStreakCount(updatedStreak); // Update local state for display
+    setLastLoginAtInternal(now); // Update internal state
   };
+
+
+  useEffect(() => {
+    const manageUserDocument = async () => {
+      if (!user) {
+        setStreakCount(0); // Reset local streak display for logged-out user
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userRef);
+
+      // Determine the display name from Firebase Auth, falling back to email
+      const authDisplayName = user.displayName || user.email || null;
+
+      if (userDocSnap.exists()) {
+        // User document exists
+        const firestoreData = userDocSnap.data();
+        const currentFirestoreStreak = firestoreData.streakCount || 0;
+        const currentFirestoreLastLogin = firestoreData.lastLoginAt as Timestamp | null || null;
+        
+        setStreakCount(currentFirestoreStreak); // Set initial display from Firestore
+        setLastLoginAtInternal(currentFirestoreLastLogin);
+
+        // Call streak logic (which includes Firestore write for streak/lastLoginAt)
+        await updateStreakLogic(user, currentFirestoreLastLogin, currentFirestoreStreak);
+
+        // Check and update displayName in Firestore if it's different from auth
+        // or if it's null in auth but present in Firestore (to clear it if user removed it)
+        if (authDisplayName !== firestoreData.displayName) {
+          await setDoc(userRef, { displayName: authDisplayName }, { merge: true });
+        }
+      } else {
+        // User document does not exist, create it (e.g., first login)
+        const initialData = {
+          streakCount: 1, // Start streak at 1
+          lastLoginAt: serverTimestamp(), // Set last login to now using server time
+          displayName: authDisplayName, // Save the determined displayName
+        };
+        await setDoc(userRef, initialData);
+        setStreakCount(1); // Update local state for streak display
+        // `lastLoginAt` will be set by serverTimestamp, can't set internal state directly to it here
+        // It will be read on next load or if manageUserDocument runs again.
+      }
+    };
+
+    manageUserDocument();
+
+    // Adding auth.onAuthStateChanged listener for real-time user changes
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        // User is signed in or state changed, re-run manageUserDocument
+        // The `user` variable from `auth.currentUser` might not update immediately
+        // in the closure, so it's safer to call with `authUser` if logic depends on it.
+        // However, the `useEffect` dependency on `user` (auth.currentUser) should handle this.
+        // For this structure, relying on the `user` in the dependency array is standard.
+      } else {
+        // User is signed out
+        setStreakCount(0);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener on component unmount
+
+  }, [user, db]); // Re-run when user object (from auth.currentUser) or db instance changes.
 
   return (
     <div style={styles.topBarWrapper}>
@@ -183,7 +206,9 @@ const styles: { [key: string]: CSSProperties } = {
           style={styles.logo}
         />
         
-        <h3 style={{ color: theme.textPrimary || '#333333' }}>Hello, {user?.displayName ?? user?.email ?? "go to Profile then Settings to Sign In"}</h3>
+        <h3 style={styles.greetingText}> {/* Apply new style here */}
+          Hello, {user?.displayName ?? user?.email ?? "Sign In via Profile"}
+        </h3>
 
         <div style={styles.streakContainer}>
           <img

@@ -222,7 +222,7 @@ function App() { // This is now the component that uses the theme
           <Route path="/profile" element={<ProfileContent />} />
           <Route path="/crates" element={<CratesPage />} />
           <Route path="/shop" element={<ShopPage />} />
-          <Route path="/settings" element={<SettingsPage />} /> {/* SettingsPage uses useTheme internally */}
+          <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
       <Navbar
