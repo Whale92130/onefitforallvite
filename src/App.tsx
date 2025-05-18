@@ -28,7 +28,6 @@ const NewWorkoutPage = () => {
   const { theme } = useTheme(); // Get theme for this page if needed
   return (
     <div style={{ padding: 20, textAlign: 'center', background: theme.background, color: theme.textPrimary, overflow: 'auto'}}>
-      <h2>Please don't tab out or your progess will be lost!</h2>
       <NewWorkout />
     </div>
   );
@@ -202,6 +201,9 @@ function App() { // This is now the component that uses the theme
   const getActiveIcon = (): IconName => {
     const path = location.pathname.toLowerCase();
     if (path.startsWith('/newworkout')) return 'newWorkout';
+    if (path.startsWith('/settings')) return 'profile';
+    if (path.startsWith('/crates')) return 'profile';
+    if (path.startsWith('/shop')) return 'profile';
     if (path.startsWith('/profile')) return 'profile';
     return 'home';
   };

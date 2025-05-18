@@ -44,13 +44,13 @@ export default function ProfileScreen() {
       alignItems: 'center',
       backgroundColor: theme.background || '#f7f7f7',
       boxSizing: 'border-box',
-
     },
     headerContainer: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
+      height:'40px',
       alignItems: 'center',
       marginBottom: 30,
     },
@@ -144,6 +144,7 @@ export default function ProfileScreen() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      WebkitTapHighlightColor: 'transparent',
     },
     editUsernameIcon: {
       width: 24,

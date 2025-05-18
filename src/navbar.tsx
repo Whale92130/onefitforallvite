@@ -150,7 +150,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeIcon, onIconPress }) => {
       objectFit: 'cover', // Important for profile pics
     },
     activeProfileBorderStyle: { // NEW: Style for the ACTIVE profile icon's BORDER
-      border: `4px solid ${theme.button || theme.primary}`, // Use theme.button or theme.primary for active border
+      border: `3px solid ${theme.button || theme.primary}`, // Use theme.button or theme.primary for active border
       borderColor: navbarProfileBorderColor,
       // You could add a subtle box-shadow too if you like:
       // boxShadow: `0 0 5px ${theme.button || theme.primary}`,

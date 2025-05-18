@@ -57,6 +57,7 @@ export default function OpenShopScreen() {
       cursor: 'pointer',
       boxShadow: '0 2px 5px rgba(0,0,0,0.1)', // Add a subtle shadow for web
       textAlign: 'center', // Ensure text is centered
+      WebkitTapHighlightColor: 'transparent',
     },
     image: {
       width: 100,

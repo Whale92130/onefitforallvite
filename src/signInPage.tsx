@@ -23,6 +23,7 @@ const SignInPage: React.FC = () => {
     try {
       await signinWithGoogle();
       // You could redirect here with useNavigate() if using react-router
+      window.location.reload();
       // alert('Signed in successfully!');
     } catch (err: any) {
       setError(err.message);
@@ -37,6 +38,7 @@ const SignInPage: React.FC = () => {
     setLoading(true);
     try {
       await signInEmail(email, password);
+      window.location.reload();
     } catch (err: any) {
       setError(err.message);
     } finally {

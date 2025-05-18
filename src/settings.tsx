@@ -191,6 +191,7 @@ const SettingsPage = () => {
             background: theme.button,
             color: theme.textSecondary,
             opacity: themeName === config.key ? 0.6 : 1,
+            WebkitTapHighlightColor: 'transparent',
           }}
         >
           {config.displayName}
@@ -198,7 +199,7 @@ const SettingsPage = () => {
       )) : <p>No themes unlocked yet, or an error occurred. The default theme is active.</p>}
       
       <br /><br /><br />
-      <button style={{ background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleAboutClick}>
+      <button style={{WebkitTapHighlightColor: 'transparent', background: theme.button, color: theme.textSecondary, margin: '0.5rem', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={handleAboutClick}>
         {showAbout ? "Hide" : "Show"} About 1Fit4All
       </button>
 
@@ -214,7 +215,7 @@ const SettingsPage = () => {
         </div>
       )}
       <br />
-      <button style={{ ...btnStyle, background: theme.button, color: theme.textSecondary }} onClick={handleSignOut}>
+      <button style={{ ...btnStyle, background: theme.button, color: theme.textSecondary,WebkitTapHighlightColor: 'transparent', }} onClick={handleSignOut}>
         Sign Out
       </button>
     </div>

@@ -81,6 +81,21 @@
     }
   }
   
+  /* Notification Badge */
+  .notificationBadge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+  }
   
   /* Button Styles */
   .buttonContainer {
@@ -140,6 +155,7 @@
       cursor: pointer;
       font-weight: bold;
       transition: background-color 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
   }
   
   .openButton:hover {
