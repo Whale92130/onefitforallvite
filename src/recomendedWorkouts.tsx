@@ -1,132 +1,303 @@
-import { CSSProperties } from 'react'; // Import CSSProperties for type checking styles
-
-// Assuming you have a colors definition file (e.g., src/styles/colors.ts)
-// If not, replace Colors.primary and Colors.textPrimary with actual color values
-// Make sure the path is correct relative to this file.
-//import { Colors } from './colors'; // Adjust the path as needed
+// src/RecommendedWorkouts.tsx
+import { CSSProperties, useEffect, useState, FC } from 'react';
 import { useTheme } from './ThemeContext';
-// Define an interface for the workout data structure
-interface Workout {
-  id: string;
+import {
+  getFirestore,
+  collectionGroup,
+  query,
+  getDocs,
+  doc,
+  getDoc,
+  limit,
+} from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+
+interface ExerciseData {
   name: string;
-  image: string;
+  muscleGroups: string[];
 }
 
-// Define the workout data with the correct type
-const workoutData: Workout[] = [
-    { id: '1', name: 'Workout A', image: 'https://placehold.co/200x150/808080/FFFFFF?text=Workout+A' },
-    { id: '2', name: 'Workout B', image: 'https://placehold.co/200x150/A9A9A9/FFFFFF?text=Workout+B' },
-    { id: '3', name: 'Workout C', image: 'https://placehold.co/200x150/C0C0C0/FFFFFF?text=Workout+C' },
-    { id: '4', name: 'Workout D', image: 'https://placehold.co/200x150/D3D3D3/FFFFFF?text=Workout+D' },
-    { id: '5', name: 'Workout E', image: 'https://placehold.co/200x150/808080/FFFFFF?text=Workout+E' },
-    { id: '6', name: 'Workout F', image: 'https://placehold.co/200x150/A9A9A9/FFFFFF?text=Workout+F' },
-    { id: '7', name: 'Workout G', image: 'https://placehold.co/200x150/C0C0C0/FFFFFF?text=Workout+G' },
-    { id: '8', name: 'Workout H', image: 'https://placehold.co/200x150/D3D3D3/FFFFFF?text=Workout+H' },
-    { id: '9', name: 'Workout I', image: 'https://placehold.co/200x150/808080/FFFFFF?text=Workout+I' },
-    { id: '10', name: 'Workout J', image: 'https://placehold.co/200x150/A9A9A9/FFFFFF?text=Workout+J' },
-    { id: '11', name: 'Workout K', image: 'https://placehold.co/200x150/C0C0C0/FFFFFF?text=Workout+K' },
-    { id: '12', name: 'Workout L', image: 'https://placehold.co/200x150/D3D3D3/FFFFFF?text=Workout+L' },
-];
+interface FirestoreWorkoutDoc {
+  exercises: ExerciseData[];
+  name?: string;
+  updatedAt?: any;
+}
 
-// Define styles as JS objects. Use CSSProperties for type safety.
-// React Native style properties (camelCase) map directly to React inline style properties.
+interface DisplayWorkoutData {
+  id: string; // This is the document ID, used as workoutName for loading
+  name: string; // This is the display name of the workout
+  muscleGroups: string[];
+  creatorDisplayName: string;
+}
 
+const RecommendedWorkouts: FC = () => {
+  const { theme } = useTheme();
+  const navigate = useNavigate(); // Initialize useNavigate
+  const [recommendedWorkouts, setRecommendedWorkouts] = useState<DisplayWorkoutData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      setIsLoading(true);
+      setError(null);
+      const db = getFirestore();
 
-function RecommendedWorkouts() {
-  const {theme} = useTheme();
+      try {
+        // Query the 'workouts' collection group
+        const workoutsQuery = query(collectionGroup(db, 'workouts'), limit(10));
+        const querySnapshot = await getDocs(workoutsQuery);
+
+        const workoutsPromises = querySnapshot.docs.map(async (docSnap) => {
+          const workoutData = docSnap.data() as FirestoreWorkoutDoc;
+          const workoutDocumentId = docSnap.id; // This is the ID we'll pass as workoutName
+
+          // Extract creatorId from path to fetch displayName
+          const pathSegments = docSnap.ref.path.split('/');
+          let creatorDisplayName = 'Anonymous'; // Default display name
+
+          // Check if the path matches 'users/{userId}/workouts/{workoutId}'
+          if (pathSegments.length >= 3 && pathSegments[0] === 'users' && pathSegments[2] === 'workouts') {
+            const userId = pathSegments[1];
+            try {
+              const userDocRef = doc(db, 'users', userId);
+              const userDoc = await getDoc(userDocRef);
+              if (userDoc.exists() && typeof userDoc.data().displayName === 'string' && userDoc.data().displayName.trim()) {
+                creatorDisplayName = userDoc.data().displayName;
+              } else {
+                creatorDisplayName = `User ${userId.substring(0, 6)}`; // Fallback if no displayName
+              }
+            } catch (userFetchError) {
+              console.warn(`Failed to fetch user ${userId}:`, userFetchError);
+              creatorDisplayName = `User ${userId.substring(0, 6)} (err)`;
+            }
+          } else {
+             // Handle cases where workout might not be under a user (e.g., global workouts)
+             // For now, keeping it simple or you could have a specific logic here
+            creatorDisplayName = 'Community Workout';
+          }
+
+          const workoutName = workoutData.name || workoutDocumentId; // Use custom name or ID as fallback
+
+          const allMuscles = workoutData.exercises
+            .flatMap(ex => ex.muscleGroups)
+            .filter(Boolean); // Filter out any undefined/null muscle groups
+          const uniqueMuscles = Array.from(new Set(allMuscles));
+
+          return {
+            id: workoutDocumentId, // This ID will be used to load the workout on the NewWorkout page
+            name: workoutName,
+            muscleGroups: uniqueMuscles,
+            creatorDisplayName,
+          };
+        });
+
+        const fetchedWorkouts = await Promise.all(workoutsPromises);
+        // Shuffle the fetched workouts for variety, or sort by updatedAt if available
+        setRecommendedWorkouts(fetchedWorkouts.sort(() => 0.5 - Math.random()).slice(0, 5)); // Show up to 5
+      } catch (err: any) {
+        console.error("Error fetching recommended workouts:", err);
+        setError('Failed to load workouts. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWorkouts();
+  }, []); // Removed db from dependencies as getFirestore() is stable
+
+  const handleWorkoutClick = (workoutId: string) => {
+    // Navigate to NewWorkout page, passing the workout ID as 'workoutName' in state
+    // This matches the behavior of YourNextWorkout
+    navigate('/newWorkout', { state: { workoutName: workoutId } });
+  };
+
   const styles: { [key: string]: CSSProperties } = {
     container: {
-      width: "100%",
-      height: "100%", // Be cautious with 100% height in web context, might need specific parent height
+      width: '100%',
       display: 'flex',
-      flexDirection: 'column', // Stays camelCase
-      alignItems: 'center', // Stays camelCase
-      backgroundColor: theme.primary, // Use imported color value
-      borderRadius: 10, // Use numbers (pixels) or string ('10px')
-      padding: 10,
-      boxSizing: 'border-box', // Recommended for predictable sizing with padding/borders
+      flexDirection: 'column',
+      alignItems: 'center',
+      backgroundColor: theme.primary,
+      borderRadius: 10,
+      boxSizing: 'border-box',
+      paddingBottom: 8, // Added some padding at the bottom
     },
     heading: {
       fontSize: 18,
       fontWeight: 'bold',
       color: theme.textPrimary,
-      marginBottom: 5, // Adjusted slightly for web spacing
+      marginTop: 10, // Consistent with YourNextWorkout's title padding
+      marginBottom: 10,
       textAlign: 'center',
     },
     scrollContainer: {
-      width: '100%',
-      marginTop: 10,
-      overflowX: 'auto', // Key style to replicate horizontal ScrollView
-      overflowY: 'hidden', // Hide vertical scrollbar if it appears
-      // Note: Advanced scrollbar styling (::-webkit-scrollbar etc.) is NOT possible with inline styles
+      width: 'calc(100% - 16px)', // 8px margin on each side
+      margin: '0 8px',
+      overflowX: 'auto',
+      overflowY: 'hidden',
+      WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
     },
     scrollContentContainer: {
-      display: 'flex', // Use flexbox to lay out items horizontally
-      flexDirection: 'row', // Explicitly set row direction
-      alignItems: 'flex-start',
-      paddingBottom: 0, // Add some padding at the bottom, e.g., for scrollbar space
-      // paddingRight: 15, // We handle spacing with marginRight on items instead
+      display: 'flex',
+      flexDirection: 'row',
+      padding: '4px 0 8px 0', // Padding for scrollbar visibility and aesthetics
     },
-    // Base style for workout items - separated for easier conditional margin logic
     workoutItemBase: {
-      width: 120,
-      alignItems: 'center',
+      width: 150,
+      marginRight: 12,
+      flexShrink: 0,
+    },
+    workoutCard: {
+      width: '100%',
+      height: 130, // Fixed height for consistency
+      borderRadius: 6,
+      backgroundColor: theme.button,
+      padding: 10,
       display: 'flex',
       flexDirection: 'column',
-      flexShrink: 0, // Prevent items from shrinking when space is limited
+      justifyContent: 'space-between', // Distribute space: name top, creator bottom, muscles middle
+      alignItems: 'stretch',
+      boxSizing: 'border-box',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)', // Subtle shadow
+      overflow: 'hidden',
+      cursor: 'pointer', // Make it look clickable
+      WebkitTapHighlightColor: 'transparent', // Remove tap highlight on mobile
+      transition: 'transform 0.2s ease-out, box-shadow 0.2s ease-out', // Hover effect
     },
-    // Margin style to apply conditionally to items except the last one
-    workoutItemMargin: {
-      marginRight: 10,
+    workoutCardHover: { // Example: style for hover, you might need pseudo-class handling or state
+        transform: 'translateY(-2px)',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.15), 0 3px 3px rgba(0,0,0,0.20)',
     },
-    image: {
-      width: 120,
-      height: 80,
-      borderRadius: 8,
-      objectFit: 'cover', // Ensures image covers the area well
-      display: 'block', // Prevents potential extra space below the image
+    workoutCardName: {
+      fontSize: 18, // Adjusted for better fit
+      fontWeight: 'bold',
+      color: theme.textSecondary,
+      marginBottom: 4, // Space below name
+      marginTop: 2,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      textAlign: 'center',
     },
-    workoutName: {
-      marginTop: 5,
-      fontSize: 12,
+    workoutCardMuscleGroups: {
+      fontSize: 13, // Adjusted for better fit
+      color: theme.textSecondary,
+      opacity: 0.85,
+      marginBottom: 6,
+      marginTop: 0, // Less space above
+      display: '-webkit-box',
+      WebkitLineClamp: 2, // Max 2 lines
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      lineHeight: '1.4em',
+      minHeight: '2.8em', // Ensure space for 2 lines
+      flexGrow: 1, // Allow it to take available space
+      textAlign: 'center',
+    },
+    workoutCardCreator: {
+      fontSize: 12, // Smaller for subtlety
+      color: theme.textSecondary || '#6c757d',
+      opacity: 0.7,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      textAlign: 'center',
+      marginTop: 'auto', // Push to bottom if muscle groups don't fill space
+    },
+    statusText: {
       color: theme.textPrimary,
-      textAlign: 'center', // Center the name under the image
+      marginTop: 20, // More space for status messages
+      textAlign: 'center',
+      fontSize: 15,
+      padding: '0 10px', // Padding for longer messages
     },
   };
+
+
+  if (isLoading) {
+    return (
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Recommended Workouts</h2>
+        <p style={styles.statusText}>Loading workouts...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Recommended Workouts</h2>
+        <p style={{ ...styles.statusText, color: 'red' }}>{error}</p>
+      </div>
+    );
+  }
+
+  if (recommendedWorkouts.length === 0) {
+    return (
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Recommended Workouts</h2>
+        <p style={styles.statusText}>No workouts found to recommend.</p>
+      </div>
+    );
+  }
+
   return (
-    // Use standard HTML elements (div, h2, p, img) and apply styles using the `style` prop
     <div style={styles.container}>
       <h2 style={styles.heading}>Recommended Workouts</h2>
-
-      {/* Replicate ScrollView */}
       <div style={styles.scrollContainer}>
-        {/* Inner container for the scrollable content */}
         <div style={styles.scrollContentContainer}>
-          {workoutData.map((workout, index) => (
+          {recommendedWorkouts.map((workout) => (
             <div
               key={workout.id}
-              // Combine base style with conditional margin style
-              // This mimics not having margin on the last item
-              style={{
-                ...styles.workoutItemBase,
-                ...(index < workoutData.length - 1 ? styles.workoutItemMargin : {}),
+              style={styles.workoutItemBase}
+              onClick={() => handleWorkoutClick(workout.id)}
+              // For accessibility, if not using a button element
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault(); // Prevent scrolling if space is pressed
+                  handleWorkoutClick(workout.id);
+                }
               }}
             >
-              {/* Use standard img tag */}
-              <img
-                src={workout.image} // Map source.uri to src
-                alt={workout.name} // Add alt text for accessibility
-                style={styles.image}
-              />
-              {/* Use p or span for text */}
-              <p style={styles.workoutName}>{workout.name}</p>
+              <div
+                style={styles.workoutCard}
+                // Simple hover effect using onMouseEnter/Leave if not using CSS pseudo-classes
+                // onMouseEnter={(e) => (e.currentTarget.style.transform = styles.workoutCardHover.transform!)}
+                // onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0px)')}
+              >
+                <h3
+                  style={styles.workoutCardName}
+                  title={workout.name} // Tooltip for full name if truncated
+                >
+                  {workout.name}
+                </h3>
+                {workout.muscleGroups.length > 0 ? (
+                  <p
+                    style={styles.workoutCardMuscleGroups}
+                    title={workout.muscleGroups.join(', ')} // Tooltip for all muscle groups
+                  >
+                    {workout.muscleGroups.join(', ')}
+                  </p>
+                ) : (
+                  <p style={styles.workoutCardMuscleGroups}>General Fitness</p> // Fallback
+                )}
+                <p
+                  style={styles.workoutCardCreator}
+                  title={`Created by ${workout.creatorDisplayName}`} // Tooltip for creator
+                >
+                  by: {workout.creatorDisplayName}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default RecommendedWorkouts;

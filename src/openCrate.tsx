@@ -77,7 +77,6 @@ export default function OpenShopScreen() {
     },
     button: {
       width: '90%',
-      maxWidth: 300,
       height: 170,
       borderRadius: 20,
       backgroundColor: theme.primary || '#e0e0e0',

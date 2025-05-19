@@ -64,7 +64,7 @@ const YourNextWorkout: FC = () => {
       color: theme.textPrimary,
       fontWeight: 'bold',
       textAlign: 'center',
-      paddingBottom: 10,
+      paddingBottom: 0,
     },
     buttonContainer: {
       flex: 1,
@@ -72,7 +72,6 @@ const YourNextWorkout: FC = () => {
       flexDirection: 'column',
       justifyContent: 'space-around',
       width: '100%',
-      marginTop: 10,
     },
     button: {
       display: 'flex',

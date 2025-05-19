@@ -207,7 +207,7 @@ const TopBar = () => {
         />
         
         <h3 style={styles.greetingText}> {/* Apply new style here */}
-          Hello, {user?.displayName ?? user?.email ?? "Sign In via Profile"}
+          Hello, {user?.displayName ?? user?.email ?? "Sign In via Profile then Settings"}
         </h3>
 
         <div style={styles.streakContainer}>
