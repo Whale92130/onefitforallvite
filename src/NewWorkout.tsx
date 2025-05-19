@@ -1,5 +1,5 @@
 // src/NewWorkout.tsx
-import { useState, useEffect, FC, useCallback, CSSProperties } from 'react'; // Added CSSProperties
+import { useState, useEffect, FC, useCallback, CSSProperties } from 'react';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   deleteDoc,
   increment,
+  DocumentSnapshot,
 } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
 import { useTheme } from './ThemeContext';
@@ -39,8 +40,14 @@ interface NewWorkoutProps {
   workoutName?: string;
 }
 
+// Location state can now include creatorId
+interface WorkoutLocationState {
+  workoutName?: string;
+  creatorId?: string;
+}
+
 const MINUTES_PER_CRATE = 15;
-const MAX_DAILY_WORKOUT_MINUTES_FOR_CRATES = MINUTES_PER_CRATE*8;
+const MAX_DAILY_WORKOUT_MINUTES_FOR_CRATES = MINUTES_PER_CRATE * 8;
 
 
 const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
@@ -49,6 +56,7 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
   const user = auth.currentUser;
   const { theme } = useTheme();
   const location = useLocation();
+  const locationState = location.state as WorkoutLocationState | null;
 
   const [exercises, setExercises] = useState<ExerciseData[]>([]);
   const [isWorkoutVisible, setIsWorkoutVisible] = useState(false);
@@ -59,8 +67,6 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
   const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
   const [finishWorkoutMessage, setFinishWorkoutMessage] = useState<string | null>(null);
 
-  const nameForInitialLoad = (location.state?.workoutName as string | undefined) || propWorkoutName;
-
   const fetchSavedWorkouts = useCallback(async () => {
     if (!user) return;
     const userWorkoutsCol = collection(db, 'users', user.uid, 'workouts');
@@ -68,23 +74,94 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
     setSavedWorkouts(snap.docs.map(d => d.id));
   }, [db, user]);
 
-  const loadWorkout = useCallback(async (name: string) => {
-    if (!user) return;
-    setWorkoutStartTime(new Date());
-    const userWorkoutsCol = collection(db, 'users', user.uid, 'workouts');
-    const snap = await getDoc(doc(userWorkoutsCol, name));
-    if (!snap.exists()) {
-      alert(`No workout found with name "${name}"`);
-      setWorkoutStartTime(null);
-      return;
-    }
-    const data = snap.data();
-    setExercises(data.exercises as ExerciseData[]);
-    setIsWorkoutVisible(true);
-    setLoadListVisible(false);
-    setCurrentWorkoutName(name);
+  const loadWorkout = useCallback(async (workoutIdentifier: string, sourceCreatorId?: string) => {
+    console.log(`Attempting to load workout: ID='${workoutIdentifier}', CreatorID='${sourceCreatorId}'`);
     setFinishWorkoutMessage(null);
+
+    let workoutDocSnap: DocumentSnapshot | null = null;
+    let workoutDataToSet: ExerciseData[] | null = null;
+    let nameToSetForCurrentWorkout = '';
+    let fetchedSuccessfully = false;
+
+    if (user && (!sourceCreatorId || sourceCreatorId === user.uid)) {
+      console.log(`Checking current user's workouts for '${workoutIdentifier}'`);
+      const userWorkoutRef = doc(db, 'users', user.uid, 'workouts', workoutIdentifier);
+      workoutDocSnap = await getDoc(userWorkoutRef);
+      if (workoutDocSnap.exists()) {
+        const data = workoutDocSnap.data();
+        workoutDataToSet = data.exercises as ExerciseData[];
+        nameToSetForCurrentWorkout = data.name || workoutIdentifier; // Prefer 'name' field if it exists, else ID
+        fetchedSuccessfully = true;
+        console.log("Loaded workout from current user's collection:", nameToSetForCurrentWorkout);
+      }
+    }
+
+    if (!fetchedSuccessfully && sourceCreatorId && user && sourceCreatorId !== user.uid) {
+      console.log(`Checking community workouts: Creator='${sourceCreatorId}', WorkoutID='${workoutIdentifier}'`);
+      const communityWorkoutRef = doc(db, 'users', sourceCreatorId, 'workouts', workoutIdentifier);
+      try {
+        workoutDocSnap = await getDoc(communityWorkoutRef);
+        if (workoutDocSnap.exists()) {
+          const data = workoutDocSnap.data();
+          workoutDataToSet = data.exercises as ExerciseData[];
+          nameToSetForCurrentWorkout = data.name || workoutIdentifier;
+          fetchedSuccessfully = true;
+          console.log("Loaded workout from community collection:", nameToSetForCurrentWorkout);
+        } else {
+          console.warn(`Recommended workout ID "${workoutIdentifier}" by creator "${sourceCreatorId}" not found.`);
+        }
+      } catch (error) {
+        console.error(`Error fetching recommended workout ${workoutIdentifier} by ${sourceCreatorId}:`, error);
+      }
+    } else if (!fetchedSuccessfully && sourceCreatorId && !user) {
+      console.log(`Checking community workouts (view-only): Creator='${sourceCreatorId}', WorkoutID='${workoutIdentifier}'`);
+      const communityWorkoutRef = doc(db, 'users', sourceCreatorId, 'workouts', workoutIdentifier);
+      try {
+          workoutDocSnap = await getDoc(communityWorkoutRef);
+          if (workoutDocSnap.exists()) {
+              const data = workoutDocSnap.data();
+              workoutDataToSet = data.exercises as ExerciseData[];
+              nameToSetForCurrentWorkout = data.name || workoutIdentifier;
+              fetchedSuccessfully = true;
+              console.log("Loaded (view-only) workout from community collection:", nameToSetForCurrentWorkout);
+          } else {
+               console.warn(`Recommended workout (view-only) ID "${workoutIdentifier}" by creator "${sourceCreatorId}" not found.`);
+          }
+      } catch (error) {
+          console.error(`Error fetching (view-only) recommended workout:`, error);
+      }
+    }
+
+    if (fetchedSuccessfully && workoutDataToSet) {
+      setExercises(workoutDataToSet);
+      setIsWorkoutVisible(true);
+      setLoadListVisible(false);
+      setCurrentWorkoutName(nameToSetForCurrentWorkout);
+      setWorkoutStartTime(new Date());
+    } else {
+      if (workoutIdentifier) {
+        alert(`Could not load workout "${workoutIdentifier}". It might have been deleted or does not exist.`);
+      }
+      setWorkoutStartTime(null);
+    }
   }, [db, user]);
+
+  useEffect(() => {
+    const workoutIdFromLocation = locationState?.workoutName;
+    const creatorIdFromLocation = locationState?.creatorId;
+
+    if (workoutIdFromLocation) {
+      loadWorkout(workoutIdFromLocation, creatorIdFromLocation);
+    } else if (propWorkoutName) {
+      loadWorkout(propWorkoutName, undefined);
+    }
+  }, [loadWorkout, propWorkoutName, locationState?.workoutName, locationState?.creatorId, location.key]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedWorkouts();
+    }
+  }, [user, fetchSavedWorkouts]);
 
   const saveWorkout = useCallback(async () => {
     if (!user) {
@@ -98,38 +175,41 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
     }
     const userWorkoutsCol = collection(db, 'users', user.uid, 'workouts');
     const docRef = doc(userWorkoutsCol, trimmedWorkoutName);
+
+    const validExercises = exercises.filter(ex => ex.name.trim() !== '' && ex.sets.length > 0 && ex.sets.some(s => s.reps.trim() !== ''));
+    if (validExercises.length === 0) {
+        alert("Please add at least one exercise with a name and some reps before saving.");
+        return;
+    }
+
     await setDoc(docRef, {
-      exercises,
+      exercises: validExercises,
+      name: trimmedWorkoutName,
       updatedAt: serverTimestamp(),
+      originalCreatorId: locationState?.creatorId || user.uid, // Simplified: if no locationState.creatorId, it's user's own or new
+      isCopy: !!(locationState?.creatorId && locationState.creatorId !== user.uid),
     }, { merge: true });
+
     fetchSavedWorkouts();
     setIsSavePopupVisible(false);
-  }, [db, user, exercises, currentWorkoutName, fetchSavedWorkouts]);
+    alert(`Workout "${trimmedWorkoutName}" saved!`);
+  }, [db, user, exercises, currentWorkoutName, fetchSavedWorkouts, locationState]);
 
-  const deleteWorkout = useCallback(async (name: string) => {
-    if (confirm(`Are you sure you want to delete ${name}?`)) {
-      if (!user) return;
+  const deleteWorkout = useCallback(async (nameToDelete: string) => {
+    if (!user) return;
+    if (confirm(`Are you sure you want to delete "${nameToDelete}" from your saved workouts?`)) {
       const userWorkoutsCol = collection(db, 'users', user.uid, 'workouts');
-      const docRef = doc(userWorkoutsCol, name);
+      const docRef = doc(userWorkoutsCol, nameToDelete);
       await deleteDoc(docRef);
       fetchSavedWorkouts();
-      if (currentWorkoutName === name) {
+      if (currentWorkoutName === nameToDelete && isWorkoutVisible) {
         setExercises([]);
         setIsWorkoutVisible(false);
         setCurrentWorkoutName('');
         setWorkoutStartTime(null);
       }
     }
-  }, [db, user, fetchSavedWorkouts, currentWorkoutName]);
-
-  useEffect(() => {
-    if (user) {
-      fetchSavedWorkouts();
-    }
-    if (nameForInitialLoad) {
-      loadWorkout(nameForInitialLoad);
-    }
-  }, [user, nameForInitialLoad, fetchSavedWorkouts, loadWorkout, location.state]);
+  }, [db, user, fetchSavedWorkouts, currentWorkoutName, isWorkoutVisible]);
 
   const startWorkout = () => {
     setExercises([{
@@ -159,8 +239,12 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
   };
 
   const handleSavePopupOpen = () => {
-    if (!isWorkoutVisible || exercises.length === 0) {
-      alert("Start a workout and add exercises before saving.");
+    if (!user) {
+        alert("Please sign in to save workouts.");
+        return;
+    }
+    if (!isWorkoutVisible || exercises.length === 0 || exercises.every(ex => ex.name.trim() === '')) {
+      alert("Start a workout and add at least one named exercise before saving.");
       return;
     }
     setIsSavePopupVisible(true);
@@ -223,7 +307,6 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
     setWorkoutStartTime(null);
   };
 
-  // STYLES FOR NewWorkout COMPONENT (buttons, popups etc.)
   const newWorkoutStyles: { [k: string]: CSSProperties } = {
     button: {
         backgroundColor: theme.primary,
@@ -305,12 +388,11 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
     }
   };
 
-
   return (
     <div style={{ padding: 20 }}>
       <button onClick={startWorkout} style={{...newWorkoutStyles.button, marginTop: 8}}>New Workout</button>
       <button onClick={handleSavePopupOpen} style={{...newWorkoutStyles.button, marginTop: 8}}>Save Workout</button>
-      <button onClick={() => { setLoadListVisible(v => !v); if (!loadListVisible) fetchSavedWorkouts(); }} style={{...newWorkoutStyles.button, marginTop: 8}}>
+      <button onClick={() => { setLoadListVisible(v => !v); if (user) fetchSavedWorkouts(); }} style={{...newWorkoutStyles.button, marginTop: 8}}>
         {loadListVisible ? 'Hide Saved' : 'Load Workout'}
       </button>
 
@@ -320,12 +402,12 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
         </div>
       )}
 
-      {loadListVisible && (
+      {loadListVisible && user && (
         <div style={{ marginTop: 10 }}>
-          {savedWorkouts.length
+          {savedWorkouts.length > 0
             ? savedWorkouts.map(name => (
               <div key={name} style={{ marginBottom: 4, display: 'flex', alignItems: 'center' }}>
-                <button onClick={() => loadWorkout(name)} style={newWorkoutStyles.loadListItemButton}>{name}</button>
+                <button onClick={() => loadWorkout(name, undefined)} style={newWorkoutStyles.loadListItemButton}>{name}</button>
                 <button onClick={() => deleteWorkout(name)} style={newWorkoutStyles.deleteIcon}>❌</button>
               </div>
             ))
@@ -333,9 +415,13 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
           }
         </div>
       )}
+       {loadListVisible && !user && (
+        <p style={{ color: theme.textPrimary, marginTop: 10 }}>Please sign in to see your saved workouts.</p>
+      )}
 
       {isWorkoutVisible && (
         <div style={{ marginTop: 20 }}>
+          {currentWorkoutName && <h3 style={{color: theme.textPrimary, textAlign: 'center'}}>Current: {currentWorkoutName}</h3>}
           {exercises.map((ex, i) => (
             <AddExercise
               key={i}
@@ -349,7 +435,7 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
           ))}
           <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between' }}>
             <button onClick={addExercise} style={newWorkoutStyles.addExerciseButton}>Add Exercise</button>
-            <button onClick={handleFinishWorkout} style={newWorkoutStyles.finishButton}>
+            <button onClick={handleFinishWorkout} style={newWorkoutStyles.finishButton} disabled={!user}>
               Finish Workout
             </button>
           </div>
@@ -369,6 +455,7 @@ const NewWorkout: FC<NewWorkoutProps> = ({ workoutName: propWorkoutName }) => {
             />
             <div>
               <button onClick={saveWorkout} style={newWorkoutStyles.popupSaveButton}>Save</button>
+              {/* CORRECTED TYPO HERE */}
               <button onClick={() => { setIsSavePopupVisible(false); }} style={newWorkoutStyles.popupCancelButton}>Cancel</button>
             </div>
           </div>
@@ -387,30 +474,27 @@ const AddExercise: FC<{
   data: ExerciseData;
   onChange: (data: ExerciseData) => void;
   onDelete: () => void;
-}> = ({data, onChange, onDelete }) => { // Destructure props correctly
+}> = ({data, onChange, onDelete }) => { // `index` is passed but not destructured if not used internally. This matches your original structure.
   const { theme } = useTheme();
 
-  // muscleGroupOptions MUST be defined inside AddExercise or passed as a prop
   const muscleGroupOptions = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Cardio'];
 
-  // styles object MUST be defined inside AddExercise or passed as a prop
   const styles: { [k: string]: React.CSSProperties } = {
     container: { padding: '20px 0', marginBottom: 0, position: 'relative', fontFamily: 'Arial, sans-serif' },
-    formBox: { padding: 15, borderRadius: 5, backgroundColor: theme.background, border: `1px solid ${theme.secondary || '#ddd'}` }, // use theme.secondary
+    formBox: { padding: 15, borderRadius: 5, backgroundColor: theme.background, border: `1px solid ${theme.secondary || '#ddd'}` },
     label: { display: 'block', marginBottom: 5, color: theme.textPrimary, fontSize: '0.9rem' },
     input: { border: `1px solid ${theme.textSecondary || '#ccc'}`, width: '100%', padding: '8px 10px', marginBottom: 10, borderRadius: 4, boxSizing: 'border-box', fontSize: '1rem', backgroundColor: theme.background, color: theme.textPrimary },
     checkboxContainer: { WebkitTapHighlightColor: 'transparent', display: 'flex', alignItems: 'center', marginBottom: 10 },
     checkboxLabel: { marginRight: 8, color: theme.textPrimary },
     checkbox: { accentColor: theme.primary, width: '1rem', height: '1rem', cursor: 'pointer' },
     muscleBtn: { border: '1px solid gray', padding: '8px 12px', borderRadius: 5, cursor: 'pointer', backgroundColor: theme.secondary, color: theme.textSecondary, fontSize: '0.9rem', marginRight: 6, marginBottom: 6, WebkitTapHighlightColor: 'transparent', },
-    selectedMuscleBtn: { backgroundColor: theme.button, color: theme.textPrimary }, // Differentiate selected style
+    selectedMuscleBtn: { backgroundColor: theme.button, color: theme.textPrimary },
     setRow: { display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' },
     setInput: { border: `1px solid ${theme.textSecondary || '#ccc'}`, flex: 1, minWidth: 70, padding: '8px 10px', borderRadius: 4, boxSizing: 'border-box', fontSize: '1rem', backgroundColor: theme.background, color: theme.textPrimary },
     addSetBtn: { WebkitTapHighlightColor: 'transparent', marginTop: 10, padding: '8px 12px', border: 'none', backgroundColor: theme.primary, color: theme.textPrimary, borderRadius: 4, cursor: 'pointer' },
     deleteExerciseBtn: { position: 'absolute', top: 20, right: 5, background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '5px', WebkitTapHighlightColor: 'transparent', },
     removeSetBtn: { WebkitTapHighlightColor: 'transparent', background: 'transparent', color: 'red', border: 'none', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, fontSize: '1rem' },
   };
-
 
   const update = (change: Partial<ExerciseData>) => {
     onChange({ ...data, ...change });
@@ -447,7 +531,6 @@ const AddExercise: FC<{
       sets: data.sets.filter((_, idx) => idx !== i),
     });
   };
-
 
   return (
     <div style={styles.container}>
@@ -486,7 +569,7 @@ const AddExercise: FC<{
 
         <p style={{ color: theme.textPrimary, marginBottom: 8, marginTop: 15 }}>Muscle Groups:</p>
         <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 15 }}>
-          {muscleGroupOptions.map(group => ( // muscleGroupOptions is now correctly in scope
+          {muscleGroupOptions.map(group => (
             <button
               key={group}
               type="button"
@@ -494,7 +577,7 @@ const AddExercise: FC<{
               style={{
                 ...styles.muscleBtn,
                 ...(data.muscleGroups.includes(group)
-                  ? styles.selectedMuscleBtn // Use the dedicated selected style
+                  ? styles.selectedMuscleBtn
                   : {}),
               }}
             >
