@@ -65,7 +65,7 @@ export const themes = {
     textPrimary: "#000000",
     textSecondary: "#FFFFFF",
     button: "#00f8fc",
-    buttonHighlight: "#002244",
+    buttonHighlight: "#c7fcfc",
   },
   winter: { // Blues and whites
     primary: "#91b7ba",
@@ -74,7 +74,7 @@ export const themes = {
     textPrimary: "#000000",
     textSecondary: "#FFFFFF",
     button: "#23307d",
-    buttonHighlight: "#002244",
+    buttonHighlight: "#8c98d1",
   },
   autumn: { // Dark reds and oranges
     primary: "#a31d0b",
@@ -83,7 +83,7 @@ export const themes = {
     textPrimary: "#FFFFFF",
     textSecondary: "#000000",
     button: "#f28374",
-    buttonHighlight: "#f5c3bc",
+    buttonHighlight: "#ffb694",
   },
   mrhare: { // Piss yellow
     primary: "#fbff00",
@@ -123,7 +123,7 @@ export const themes = {
     secondary: "#8c53c2",
     background: "#1a072b",
     textPrimary: "#FFFFFF",
-    textSecondary: "#8f8f8f",
+    textSecondary: "#FFFFFF",
     button: "#8c53c2",
     buttonHighlight: "#a564f5",
   }

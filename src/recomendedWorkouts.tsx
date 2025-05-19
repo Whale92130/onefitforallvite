@@ -140,7 +140,7 @@ const RecommendedWorkouts: FC = () => {
     workoutCard: { width: '100%', height: 130, borderRadius: 6, backgroundColor: theme.button, padding: 10, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'stretch', boxSizing: 'border-box', boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)', overflow: 'hidden', cursor: 'pointer', WebkitTapHighlightColor: 'transparent', transition: 'transform 0.2s ease-out, box-shadow 0.2s ease-out', },
     workoutCardName: { fontSize: 18, fontWeight: 'bold', color: theme.textSecondary, marginBottom: 4, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center', },
     workoutCardMuscleGroups: { fontSize: 13, color: theme.textSecondary, opacity: 0.85, marginBottom: 6, marginTop: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.4em', minHeight: '2.8em', flexGrow: 1, textAlign: 'center', },
-    workoutCardCreator: { fontSize: 12, color: theme.textSecondary || '#6c757d', opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center', marginTop: 'auto', },
+    workoutCardCreator: { fontSize: 12, color: theme.textSecondary || '#6c757d', opacity: 0.7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' },
     statusText: { color: theme.textPrimary, marginTop: 20, textAlign: 'center', fontSize: 15, padding: '0 10px', },
   };
 

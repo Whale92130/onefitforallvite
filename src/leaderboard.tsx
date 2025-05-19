@@ -115,12 +115,12 @@ export default function Leaderboard() {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center', // Vertically align items
-      paddingTop: 10,
-      paddingBottom: 10,
+      marginTop: 10,
       paddingLeft: 5,
       paddingRight: 5,
-      borderBottom: `1px solid ${theme.textPrimary || '#eeeeee'}`,
-      minHeight: '40px',
+      backgroundColor: theme.button,
+      borderRadius: '10px',
+      minHeight: '30px',
     },
     name: {
       flexGrow: 1,         // Allow name to grow and take available space
@@ -130,7 +130,7 @@ export default function Leaderboard() {
       minWidth: 0,         //<<<< Allow it to shrink down to almost nothing before CSS ellipsis.
                            // If you want some absolute minimum text visible, set a small value like '50px'
       textAlign: 'left',
-      color: theme.textPrimary,
+      color: theme.textSecondary,
       paddingRight: 10,
       whiteSpace: 'nowrap',   // CRUCIAL for ellipsis
       overflow: 'hidden',     // CRUCIAL for ellipsis
@@ -143,7 +143,7 @@ export default function Leaderboard() {
       flexBasis: 'auto',    // Size based on content or minWidth
       minWidth: '50px',     // Ensure streak has at least this much space (e.g., for "999")
       textAlign: 'right',
-      color: theme.textPrimary,
+      color: theme.textSecondary,
       fontSize: '10pt',
       paddingLeft: '5px',   // Add a little space so it doesn't touch the name if name is long
     },
@@ -170,8 +170,8 @@ export default function Leaderboard() {
       <h2 style={styles.title}>Leaderboard</h2>
       {/* Apply specific flex properties to header children if not inheriting perfectly */}
       <div style={styles.header}>
-      <span style={{...styles.headerTextBase, ...styles.name, textAlign: 'left'}}>Name</span>
-        <span style={{...styles.headerTextBase, ...styles.workouts, textAlign: 'right'}}>Streak</span>
+      <span style={{...styles.headerTextBase, ...styles.name, textAlign: 'left', color: theme.textPrimary}}>Name</span>
+        <span style={{...styles.headerTextBase, ...styles.workouts, textAlign: 'right', color: theme.textPrimary}}>Streak</span>
       </div>
       <div style={styles.scrollableContent}>
         {leaderboardData.length > 0 ? (

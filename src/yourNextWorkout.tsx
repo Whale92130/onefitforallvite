@@ -93,8 +93,8 @@ const YourNextWorkout: FC = () => {
     },
     placeholder: {
       backgroundColor: theme.background,
-      color: theme.textSecondary,
-      opacity: 0.5,
+      color: theme.textPrimary,
+      opacity: 0.7,
       cursor: 'default',
     },
   };
