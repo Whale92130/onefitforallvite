@@ -150,7 +150,7 @@ const RecommendedWorkouts: FC = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.heading}>Recommended Workouts</h2>
+      <h2 style={styles.heading}>Workouts by Others</h2>
       <div style={styles.scrollContainer}>
         <div style={styles.scrollContentContainer}>
           {recommendedWorkouts.map((workout) => (

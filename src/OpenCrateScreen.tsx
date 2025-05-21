@@ -147,12 +147,12 @@ const OpenCrateScreen: React.FC = () => {
 
     let crateResult: CrateResult;
     const roll = Math.random();
-    if (roll <= 0.60) {
+    if (roll <= 0.1) {
       crateResult = { theme: 'Dark Theme', rarity: 'Common' };
-    } else if (roll <= 0.90) {
+    } else if (roll <= 0.1) {
       const themes = ['Winter Theme', 'Summer Theme', 'Autumn Theme', 'Spring Theme'];
       crateResult = { theme: themes[Math.floor(Math.random() * themes.length)], rarity: 'Rare' };
-    } else if (roll <= 0.98) {
+    } else if (roll <= 0.90) {
       const themes = ['Mr. Hare Theme', 'CCA Theme', 'The Nether Theme'];
       crateResult = { theme: themes[Math.floor(Math.random() * themes.length)], rarity: 'Epic' };
     } else {

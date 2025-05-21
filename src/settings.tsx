@@ -177,7 +177,7 @@ const SettingsPage = () => {
   );
 
   return (
-    <div style={{ padding: 20, background: theme.background, color: theme.textPrimary }}>
+    <div style={{ padding: 20, background: theme.background, color: theme.textPrimary, overflowY: 'auto' }}>
       <h1>Settings</h1>
       <h2>{getThemeDisplayName(themeName)}</h2>
 
@@ -208,6 +208,7 @@ const SettingsPage = () => {
           <p>
             At Good Boy Inc., we’re more than just developers — we’re a team brought together by a shared mission: to help people feel stronger, happier, and healthier every single day.
           </p>
+          <p>Thanks to Jackson for helping us when times were tough.</p>
           <p>
             Stay strong. Stay good.
             — The Good Boy Inc. Team.
